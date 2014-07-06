@@ -4,6 +4,10 @@
 
 typedef void(^SGCacheFetchCompletion)(UIImage *image);
 
+#ifndef __weakSelf
+#define __weakSelf __weak typeof(self)
+#endif
+
 /**
 `SGImageCache` provides a fast and simple disk and memory cache for images
 fetched from remote URLs.

@@ -40,8 +40,6 @@ void backgroundDo(void(^block)()) {
 #pragma mark - Public API
 
 + (BOOL)haveImageForURL:(NSString *)url {
-    SGDebugAssert(!url || [url isKindOfClass:NSString.class],
-                @"SGDebugAssert: url != NSString");
     if (![url isKindOfClass:NSString.class]) {
         return NO;
     }
@@ -57,8 +55,6 @@ void backgroundDo(void(^block)()) {
 }
 
 + (void)getImageForURL:(NSString *)url thenDo:(SGCacheFetchCompletion)completion {
-    SGDebugAssert(!url || [url isKindOfClass:NSString.class],
-                @"SGDebugAssert: url != NSString");
     if (![url isKindOfClass:NSString.class] || !url.length) {
         return;
     }
@@ -84,8 +80,6 @@ void backgroundDo(void(^block)()) {
 }
 
 + (void)slowGetImageForURL:(NSString *)url thenDo:(SGCacheFetchCompletion)completion {
-    SGDebugAssert(!url || [url isKindOfClass:NSString.class],
-                @"SGDebugAssert: url != NSString");
     if (![url isKindOfClass:NSString.class] || !url.length) {
         return;
     }
@@ -111,8 +105,6 @@ void backgroundDo(void(^block)()) {
 }
 
 + (void)moveTaskToSlowQueueForURL:(NSString *)url {
-    SGDebugAssert(!url || [url isKindOfClass:NSString.class],
-                @"SGDebugAssert: url != NSString");
     if (![url isKindOfClass:NSString.class] || !url.length) {
         return;
     }
@@ -156,7 +148,6 @@ void backgroundDo(void(^block)()) {
             // too old. delete it
             if (-created.timeIntervalSinceNow > age) {
                 [NSFileManager.defaultManager removeItemAtPath:path error:nil];
-                SGDebugLog(@"Flushed: %@", path);
             }
         }
 
