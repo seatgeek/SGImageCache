@@ -2,6 +2,8 @@
 //  Created by matt on 18/03/13.
 //
 
+#import <UIKit/UIKit.h>
+
 typedef void(^SGCacheFetchCompletion)(UIImage *image);
 
 #ifndef __weakSelf
