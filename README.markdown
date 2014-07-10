@@ -57,10 +57,7 @@ longer urgently required.
 #### fastQueue
 
 `fastQueue` is a parallel queue, used for urgently required images. The `getImageForURL:`
-method adds tasks to this queue.
-
-The maximum number of parallel tasks is managed by iOS, based on
-the device's number of processors, [and other factors](https://developer.apple.com/library/ios/documentation/cocoa/reference/NSOperationQueue_class/Reference/Reference.html#//apple_ref/doc/uid/TP40004592-RH2-borderType). 
+method adds tasks to this queue. The maximum number of parallel tasks is managed by iOS, based on the device's number of processors, [and other factors](https://developer.apple.com/library/ios/documentation/cocoa/reference/NSOperationQueue_class/Reference/Reference.html#//apple_ref/doc/uid/TP40004592-RH2-borderType). 
 
 #### slowQueue
 
