@@ -8,15 +8,10 @@ A lightweight iOS image cache with built in queue management.
 pod 'SGImageCache'
 ```
 
-### Fetching Images
+### Get an image urgently
 
-#### Get an image urgently
-
-##### Objective-C
-
+#### Objective-C
 ```objc
-NSString *url = @"http://example.com/image.jpg";
-
 [SGImageCache getImageForURL:url thenDo:^(UIImage *image) {
     if (image) {
         self.imageView.image = image;
@@ -24,11 +19,8 @@ NSString *url = @"http://example.com/image.jpg";
 }];
 ```
 
-##### Swift
-
+#### Swift
 ```swift
-let url = "http://example.com/image.jpg"
-
 SGImageCache.getImageForURL(url) { image in
     if image {
         self.imageView.image = image
@@ -40,21 +32,15 @@ SGImageCache.getImageForURL(url) { image in
 This will add the fetch request to `fastQueue` (a parellel queue). All image fetching (either
 from memory, disk, or remote) is performed off the main thread. 
 
-#### Queue a fetch for an image that you'll need later
+### Queue a fetch for an image that you'll need later
 
-##### Objective-C
-
+#### Objective-C
 ```objc
-NSString *url = @"http://example.com/image.jpg";
-
 [SGImageCache slowGetImageForURL:url thenDo:nil];
 ```
 
-##### Swift
-
+#### Swift
 ```swift
-let url = "http://example.com/image.jpg"
-
 SGImageCache.slowGetImageForURL(url, thenDo: nil)
 ```
 
@@ -66,21 +52,15 @@ content. For example if you have data for 100 table rows, but only 3 are on scre
 you would request the images for on screen rows from `fastQueue` with `getImageForURL:` and
 add the rest to `slowQueue` with `slowGetImageForURL:`.
 
-#### Inform the cache that an urgent image fetch is no longer urgent
+### Inform the cache that an urgent image fetch is no longer urgent
 
-##### Objective-C
-
+#### Objective-C
 ```objc
-NSString *url = @"http://example.com/image.jpg";
-
 [SGImageCache moveTaskToSlowQueueForURL:url];
 ```
 
-##### Swift
-
+#### Swift
 ```swift
-let url = "http://example.com/image.jpg"
-
 SGImageCache.moveTaskToSlowQueueForURL(url)
 ```
 
@@ -88,14 +68,12 @@ This is useful for deprioritising image fetches for content that has scrolled of
 content may scroll back on screen later, so you still want the fetch to happen, but it is no
 longer urgently required.
 
-### Fetch Queues
-
-#### fastQueue
+### fastQueue
 
 `fastQueue` is a parallel queue, used for urgently required images. The `getImageForURL:`
 method adds tasks to this queue. The maximum number of parallel tasks is managed by iOS, based on the device's number of processors, [and other factors](https://developer.apple.com/library/ios/documentation/cocoa/reference/NSOperationQueue_class/Reference/Reference.html#//apple_ref/doc/uid/TP40004592-RH2-borderType). 
 
-#### slowQueue
+### slowQueue
 
 `slowQueue` is a serial queue, used for prefetching images that might be required later (eg
 for currently off screen content). The `slowGetImageForURL:` method adds tasks to this queue.
@@ -103,7 +81,7 @@ for currently off screen content). The `slowGetImageForURL:` method adds tasks t
 `slowQueue` is automatically suspended while `fastQueue` is active, to avoid consuming network bandwidth while urgent image fetches are in progress. Once all `fastQueue` tasks are completed
 `slowQueue` will be resumed.
 
-#### Task Deduplication
+### Task Deduplication
 
 If an image is requested for a URL that is already queued or in progress, `SGImageCache` 
 reuses the existing task, and if necessary will move it from `slowQueue` to `fastQueue`, 
