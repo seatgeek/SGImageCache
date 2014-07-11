@@ -34,6 +34,8 @@ void backgroundDo(void(^block)()) {
     self = [super init];
     self.folderName = FOLDER_NAME;
     self.cachePath = self.makeCachePath;
+    [self slowQueue];
+    [self fastQueue];
     return self;
 }
 
