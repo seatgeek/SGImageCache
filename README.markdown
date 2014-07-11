@@ -12,13 +12,29 @@ pod 'SGImageCache'
 
 #### Get an image urgently
 
+##### Objective-C
+
 ```objc
 NSString *url = @"http://example.com/image.jpg";
 
-__weak typeof(self) me = self;
 [SGImageCache getImageForURL:url thenDo:^(UIImage *image) {
-    me.imageView.image = image;
+    if (image) {
+        self.imageView.image = image;
+    }
 }];
+```
+
+##### Swift
+
+```swift
+let url = "http://example.com/image.jpg"
+
+SGImageCache.getImageForURL(url) { image in
+    if image {
+        self.imageView.image = image
+    }
+}
+
 ```
 
 This will add the fetch request to `fastQueue` (a parellel queue). All image fetching (either
@@ -26,10 +42,20 @@ from memory, disk, or remote) is performed off the main thread.
 
 #### Queue a fetch for an image that you'll need later
 
+##### Objective-C
+
 ```objc
 NSString *url = @"http://example.com/image.jpg";
 
 [SGImageCache slowGetImageForURL:url thenDo:nil];
+```
+
+##### Swift
+
+```swift
+let url = "http://example.com/image.jpg"
+
+SGImageCache.slowGetImageForURL(url, thenDo: nil)
 ```
 
 This will add the fetch request to `slowQueue` (a serial queue). All image fetching (either
@@ -42,10 +68,20 @@ add the rest to `slowQueue` with `slowGetImageForURL:`.
 
 #### Inform the cache that an urgent image fetch is no longer urgent
 
+##### Objective-C
+
 ```objc
 NSString *url = @"http://example.com/image.jpg";
 
 [SGImageCache moveTaskToSlowQueueForURL:url];
+```
+
+##### Swift
+
+```swift
+let url = "http://example.com/image.jpg"
+
+SGImageCache.moveTaskToSlowQueueForURL(url)
 ```
 
 This is useful for deprioritising image fetches for content that has scrolled off screen. The
