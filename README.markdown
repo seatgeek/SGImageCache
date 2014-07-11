@@ -10,8 +10,8 @@ pod 'SGImageCache'
 
 ### Get an image urgently
 
-#### Objective-C
 ```objc
+// Objective-C
 [SGImageCache getImageForURL:url thenDo:^(UIImage *image) {
     if (image) {
         self.imageView.image = image;
@@ -19,8 +19,8 @@ pod 'SGImageCache'
 }];
 ```
 
-#### Swift
 ```swift
+// Swift
 SGImageCache.getImageForURL(url) { image in
     if image {
         self.imageView.image = image
@@ -34,13 +34,13 @@ from memory, disk, or remote) is performed off the main thread.
 
 ### Queue a fetch for an image that you'll need later
 
-#### Objective-C
 ```objc
+// Objective-C
 [SGImageCache slowGetImageForURL:url thenDo:nil];
 ```
 
-#### Swift
 ```swift
+// Swift
 SGImageCache.slowGetImageForURL(url, thenDo: nil)
 ```
 
@@ -54,13 +54,13 @@ add the rest to `slowQueue` with `slowGetImageForURL:`.
 
 ### Inform the cache that an urgent image fetch is no longer urgent
 
-#### Objective-C
 ```objc
+// Objective-C
 [SGImageCache moveTaskToSlowQueueForURL:url];
 ```
 
-#### Swift
 ```swift
+// Swift
 SGImageCache.moveTaskToSlowQueueForURL(url)
 ```
 
