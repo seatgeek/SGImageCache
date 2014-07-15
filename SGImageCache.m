@@ -19,6 +19,12 @@ void backgroundDo(void(^block)()) {
     }
 }
 
+@interface SGImageCache ()
+
+@property (atomic, strong) NSMapTable *weakCache;
+
+@end
+
 @implementation SGImageCache
 
 + (SGImageCache *)cache {
@@ -34,6 +40,7 @@ void backgroundDo(void(^block)()) {
     self = [super init];
     self.folderName = FOLDER_NAME;
     self.cachePath = self.makeCachePath;
+    self.weakCache = [NSMapTable strongToWeakObjectsMapTable];
     [self slowQueue];
     [self fastQueue];
     return self;
@@ -51,8 +58,14 @@ void backgroundDo(void(^block)()) {
 + (UIImage *)imageForURL:(NSString *)url {
     if ([UIDevice.currentDevice.systemVersion hasPrefix:@"8"]) {
         return [UIImage imageNamed:[self.cache pathForURL:url]];
-    } else {
-        return [UIImage imageNamed:[self.cache relativePathForURL:url]];
+    }
+    else {
+        UIImage *weakImage = [[self.cache weakCache] objectForKey:[self.cache relativePathForURL:url]];
+        if(! weakImage) {
+            weakImage = [UIImage imageNamed:[self.cache relativePathForURL:url]];
+            [[self.cache weakCache] setObject:weakImage forKey:[self.cache relativePathForURL:url]];
+        }
+        return weakImage;
     }
 }
 
