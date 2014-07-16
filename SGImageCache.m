@@ -57,7 +57,12 @@ void backgroundDo(void(^block)()) {
 
 + (UIImage *)imageForURL:(NSString *)url {
     if ([UIDevice.currentDevice.systemVersion hasPrefix:@"8"]) {
-        return [UIImage imageNamed:[self.cache pathForURL:url]];
+        UIImage *weakImage = [[self.cache weakCache] objectForKey:[self.cache pathForURL:url]];
+        if(! weakImage) {
+            weakImage = [UIImage imageNamed:[self.cache pathForURL:url]];
+            [[self.cache weakCache] setObject:weakImage forKey:[self.cache pathForURL:url]];
+        }
+        return weakImage;
     }
     else {
         UIImage *weakImage = [[self.cache weakCache] objectForKey:[self.cache relativePathForURL:url]];
