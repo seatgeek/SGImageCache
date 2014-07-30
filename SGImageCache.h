@@ -6,6 +6,14 @@
 
 typedef void(^SGCacheFetchCompletion)(UIImage *image);
 
+typedef NS_OPTIONS(NSInteger, SGImageCacheLogging) {
+    SGImageCacheLogNothing    = 0,
+    SGImageCacheLogRequests   = 1 << 0,
+    SGImageCacheLogResponses  = 1 << 1,
+    SGImageCacheLogErrors     = 1 << 2,
+    SGImageCacheLogAll        = (SGImageCacheLogRequests|SGImageCacheLogResponses|SGImageCacheLogErrors)
+};
+
 #ifndef __weakSelf
 #define __weakSelf __weak typeof(self)
 #endif
@@ -114,6 +122,19 @@ Fetch an image from cache if available, or remote it not.
 * [getImageForURL:thenDo:](<+[SGImageCache getImageForURL:thenDo:]>) instead.
 */
 + (UIImage *)imageForURL:(NSString *)url;
+
+#pragma - mark - Logging
+
+/** @name Logging */
+
+/**
+* Set logging level (defaults to SGImageCacheLogNothing)
+*/
++ (void)setLogging:(SGImageCacheLogging)logging;
+/**
+* Logging level (defaults to SGImageCacheLogNothing)
+*/
++ (SGImageCacheLogging)logging;
 
 #pragma mark - Ignore below here plz
 

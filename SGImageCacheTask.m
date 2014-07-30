@@ -59,6 +59,18 @@
 
 - (void)fetchRemoteImage {
     self.request = [SGHTTPRequest requestWithURL:[NSURL URLWithString:self.url]];
+    
+    self.request.logging = SGImageCacheLogNothing;
+    if (SGImageCache.logging & SGImageCacheLogErrors) {
+        self.request.logging |= SGHTTPLogErrors;
+    }
+    if (SGImageCache.logging & SGImageCacheLogRequests) {
+        self.request.logging |= SGHTTPLogRequests;
+    }
+    if (SGImageCache.logging & SGImageCacheLogResponses) {
+        self.request.logging |= SGHTTPLogResponses;
+    }
+
     __weakSelf me = self;
     self.request.onSuccess = ^(SGHTTPRequest *req) {
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{

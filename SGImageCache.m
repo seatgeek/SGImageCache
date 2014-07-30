@@ -9,6 +9,8 @@
 #define FOLDER_NAME @"generic_images_cache"
 #define MAX_RETRIES 5
 
+SGImageCacheLogging gSGImageCacheLogging = SGImageCacheLogNothing;
+
 void backgroundDo(void(^block)()) {
     if (NSThread.isMainThread) { // we're on the main thread. ew
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
@@ -265,6 +267,16 @@ void backgroundDo(void(^block)()) {
         _slowQueue.maxConcurrentOperationCount = 1;
     }
     return _slowQueue;
+}
+
+#pragma mark - Logging
+
++ (void)setLogging:(SGImageCacheLogging)logging {
+    gSGImageCacheLogging = logging;
+}
+
++ (SGImageCacheLogging)logging {
+    return gSGImageCacheLogging;
 }
 
 @end
