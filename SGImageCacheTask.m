@@ -102,9 +102,9 @@
 
     // force a decompress
     if (self.forceDecompress) {
-        UIGraphicsBeginImageContextWithOptions(image.size, NO, 0);
-        [image drawAtPoint:CGPointZero];
-        image = UIGraphicsGetImageFromCurrentImageContext();
+        UIGraphicsBeginImageContext(CGSizeMake(1,1));
+        CGContextRef context = UIGraphicsGetCurrentContext();
+        CGContextDrawImage(context, CGRectMake(0, 0, 1, 1), image.CGImage);
         UIGraphicsEndImageContext();
     }
 

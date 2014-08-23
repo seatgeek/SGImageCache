@@ -13,7 +13,7 @@ SGImageCacheLogging gSGImageCacheLogging = SGImageCacheLogNothing;
 
 void backgroundDo(void(^block)()) {
     if (NSThread.isMainThread) { // we're on the main thread. ew
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
             block();
         });
     } else { // we're already off the main thread. chillax
@@ -72,12 +72,14 @@ void backgroundDo(void(^block)()) {
             [slowTask addCompletions:fastTask.completions];
             [fastTask cancel];
         } else if (fastTask) { // reuse a fast task
+            fastTask.forceDecompress = NO;
             [fastTask addCompletion:completion];
             [fastTask addCompletions:slowTask.completions];
             [slowTask cancel];
         } else { // add a fresh task to fast queue
             SGImageCacheTask *task = [self taskForURL:url attempt:1];
             [task addCompletion:completion];
+            task.forceDecompress = YES;
             [self.cache.fastQueue addOperation:task];
         }
     });
