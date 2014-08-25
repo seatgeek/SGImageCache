@@ -123,6 +123,12 @@ Fetch an image from cache if available, or remote it not.
 */
 + (UIImage *)imageForURL:(NSString *)url;
 
+/**
+ * Retrieves an image from the cache or application asset bundle if not cached.
+ */
+
++ (UIImage *)imageNamed:(NSString *)named;
+
 #pragma - mark - Logging
 
 /** @name Logging */

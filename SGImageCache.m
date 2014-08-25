@@ -51,11 +51,54 @@ void backgroundDo(void(^block)()) {
 }
 
 + (UIImage *)imageForURL:(NSString *)url {
-    if ([UIDevice.currentDevice.systemVersion hasPrefix:@"8"]) {
-        return [UIImage imageNamed:[self.cache pathForURL:url]];
-    } else {
-        return [UIImage imageNamed:[self.cache relativePathForURL:url]];
+    UIImage *image = [self.globalMemCache objectForKey:url];
+    if (image) {
+        return image;
     }
+
+    NSData *imageData = [NSData dataWithContentsOfFile:[self.cache pathForURL:url]];
+    image = [UIImage imageWithData:imageData];
+    if (!image) {
+        return nil;
+    }
+
+    // quickly guess rough byte size of the image
+    int height = image.size.height,
+    width = image.size.width;
+    int bytesPerRow = 4 * width;
+    if (bytesPerRow % 16) {
+        bytesPerRow = ((bytesPerRow / 16) + 1) * 16;
+    }
+
+    NSUInteger imageCost = height * bytesPerRow;
+    [self.globalMemCache setObject:image forKey:url cost:imageCost];
+
+    return image;
+}
+
++ (UIImage *)imageNamed:(NSString *)name {
+    UIImage *image = [self.globalMemCache objectForKey:name];
+    if (image) {
+        return image;
+    }
+
+    image = [UIImage imageNamed:name];
+    if (!image) {
+        return nil;
+    }
+
+    // quickly guess rough byte size of the image
+    int height = image.size.height,
+    width = image.size.width;
+    int bytesPerRow = 4 * width;
+    if (bytesPerRow % 16) {
+        bytesPerRow = ((bytesPerRow / 16) + 1) * 16;
+    }
+
+    NSUInteger imageCost = height * bytesPerRow;
+    [self.globalMemCache setObject:image forKey:name cost:imageCost];
+    
+    return image;
 }
 
 + (void)getImageForURL:(NSString *)url thenDo:(SGCacheFetchCompletion)completion {
@@ -218,7 +261,7 @@ void backgroundDo(void(^block)()) {
     [self.cache.fastQueue addOperation:retryTask];
 }
 
-#pragma mark - Cache Setup
+#pragma mark - File and Memory Cache Setup
 
 - (NSString *)makeCachePath {
     NSString *path = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask,
@@ -233,6 +276,16 @@ void backgroundDo(void(^block)()) {
     }
 
     return path;
+}
+
++ (NSCache *)globalMemCache {
+    static NSCache *globalCache;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        globalCache = NSCache.new;
+        globalCache.totalCostLimit = 100000000;  // 100 MB ish
+    });
+    return globalCache;
 }
 
 #pragma mark - Getters
