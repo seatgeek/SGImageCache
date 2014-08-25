@@ -70,9 +70,9 @@ void backgroundDo(void(^block)()) {
         if (slowTask.isExecuting) { // reuse an executing slow task
             [slowTask addCompletion:completion];
             [slowTask addCompletions:fastTask.completions];
+            slowTask.forceDecompress = YES;
             [fastTask cancel];
         } else if (fastTask) { // reuse a fast task
-            fastTask.forceDecompress = NO;
             [fastTask addCompletion:completion];
             [fastTask addCompletions:slowTask.completions];
             [slowTask cancel];
