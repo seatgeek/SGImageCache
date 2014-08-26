@@ -142,6 +142,17 @@ Fetch an image from cache if available, or remote it not.
 */
 + (SGImageCacheLogging)logging;
 
+#pragma - mark - Memory Cache
+
+/** @name Memory Cache */
+
+/**
+ * Set Memory Cache Size in MB (defaults to 100MB)
+ * This is not a hard limit and iOS will determine
+ * periodically when and which items to purge from memory.
+ */
++ (void)setMemoryCacheSize:(NSUInteger)megaBytes;
+
 #pragma mark - Ignore below here plz
 
 @property (atomic, copy) NSString *folderName;

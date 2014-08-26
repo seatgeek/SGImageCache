@@ -288,6 +288,10 @@ void backgroundDo(void(^block)()) {
     return globalCache;
 }
 
++ (void)setMemoryCacheSize:(NSUInteger)megaBytes {
+    self.globalMemCache.totalCostLimit = megaBytes * 1000000;
+}
+
 #pragma mark - Getters
 
 - (NSString *)pathForURL:(NSString *)url {
