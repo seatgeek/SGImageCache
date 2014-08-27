@@ -7,16 +7,20 @@
 typedef void(^SGCacheFetchCompletion)(UIImage *image);
 
 typedef NS_OPTIONS(NSInteger, SGImageCacheLogging) {
-    SGImageCacheLogNothing    = 0,
-    SGImageCacheLogRequests   = 1 << 0,
-    SGImageCacheLogResponses  = 1 << 1,
-    SGImageCacheLogErrors     = 1 << 2,
-    SGImageCacheLogAll        = (SGImageCacheLogRequests|SGImageCacheLogResponses|SGImageCacheLogErrors)
+    SGImageCacheLogNothing            = 0,
+    SGImageCacheLogRequests           = 1 << 0,
+    SGImageCacheLogResponses          = 1 << 1,
+    SGImageCacheLogErrors             = 1 << 2,
+    SGImageCacheLogMemoryFlushing     = 1 << 3,
+    SGImageCacheLogAll                = (SGImageCacheLogRequests|SGImageCacheLogResponses|
+                                         SGImageCacheLogErrors|SGImageCacheLogMemoryFlushing)
 };
 
 #ifndef __weakSelf
 #define __weakSelf __weak typeof(self)
 #endif
+
+#define SGImageCacheFlushed @"SGImageCacheFlushed"
 
 /**
 `SGImageCache` provides a fast and simple disk and memory cache for images

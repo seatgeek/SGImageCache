@@ -284,6 +284,20 @@ void backgroundDo(void(^block)()) {
     dispatch_once(&onceToken, ^{
         globalCache = NSCache.new;
         globalCache.totalCostLimit = 100000000;  // 100 MB ish
+
+        [NSNotificationCenter.defaultCenter
+             addObserverForName:UIApplicationDidReceiveMemoryWarningNotification
+             object:nil
+             queue:[NSOperationQueue mainQueue]
+             usingBlock:^(NSNotification *note) {
+                 // attempt to flush the cache, and then reactivate it some-time later
+                 NSInteger costLimit = globalCache.totalCostLimit;
+                 globalCache.totalCostLimit = 1;
+                 dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(10 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                     globalCache.totalCostLimit = costLimit;
+                 });
+                 [SGImageCache trigger:SGImageCacheFlushed];
+             }];
     });
     return globalCache;
 }
