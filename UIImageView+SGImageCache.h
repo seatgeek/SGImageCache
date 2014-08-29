@@ -7,6 +7,8 @@
 * <SGImageCache>.
 */
 
+#define SGImageViewImageChanged     @"SGImageViewImageChanged"
+
 @interface UIImageView (SGImageCache)
 
 /**

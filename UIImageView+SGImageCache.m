@@ -31,7 +31,10 @@
            placeholder:(UIImage *)placeholder
      crossFadeDuration:(NSTimeInterval)duration {
     __weakSelf me = self;
-    self.image = placeholder;
+    if (self.image != placeholder) {
+         self.image = placeholder;
+        [me trigger:SGImageViewImageChanged withContext:placeholder];
+    }
     [SGImageCache getImageForURL:url thenDo:^(UIImage *image) {
         if (!image) {
             return;
@@ -46,9 +49,11 @@
                                        UIViewAnimationOptionAllowAnimatedContent
                             animations:^{
                                 me.image = image;
+                                [me trigger:SGImageViewImageChanged withContext:image];
                             } completion:nil];
         } else {
             me.image = image;
+            [me trigger:SGImageViewImageChanged withContext:image];
         }
     }];
 }
@@ -70,9 +75,12 @@
                                    UIViewAnimationOptionAllowAnimatedContent
                         animations:^{
                             me.image = image;
+                            [me trigger:SGImageViewImageChanged withContext:image];
                         } completion:nil];
     } else {
-        self.image = [SGImageCache imageNamed:name];
+        UIImage *image = [SGImageCache imageNamed:name];
+        self.image = image;
+        [self trigger:SGImageViewImageChanged withContext:image];
     }
 }
 

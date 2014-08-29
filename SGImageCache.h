@@ -20,7 +20,7 @@ typedef NS_OPTIONS(NSInteger, SGImageCacheLogging) {
 #define __weakSelf __weak typeof(self)
 #endif
 
-#define SGImageCacheFlushed @"SGImageCacheFlushed"
+#define SGImageCacheFlushed         @"SGImageCacheFlushed"
 
 /**
 `SGImageCache` provides a fast and simple disk and memory cache for images
