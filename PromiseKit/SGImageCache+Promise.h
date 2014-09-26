@@ -6,7 +6,7 @@
 //  Copyright (c) 2014 Dustin Bachrach. All rights reserved.
 //
 
-#import "SGImageCache.h"
+#import <SGImageCache/SGImageCache.h>
 #import <PromiseKit/PromiseKit.h>
 
 

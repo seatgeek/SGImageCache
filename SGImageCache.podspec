@@ -7,7 +7,7 @@ Pod::Spec.new do |s|
   s.license      = { :type => "BSD", :file => "LICENSE" }
   s.author       = "SeatGeek"
   s.platform     = :ios, "7.0"
-  s.source       = { :git => "https://github.com/seatgeek/SGImageCache.git", :tag => "1.0.1" }
+  s.source       = { :git => "https://github.com/dbachrach/SGImageCache.git", :tag => "1.0.1" }
   s.requires_arc = true
   s.dependency "SGHTTPRequest"
   s.dependency "MGEvents"
@@ -19,7 +19,8 @@ Pod::Spec.new do |s|
   end
 
   s.subspec 'PromiseKit' do |ss|
-    ss.dependency 'PromiseKit/base', 'SGImageCache/base'
-    ss.source_files = 'PromiseKit/*.{m,h}'
+    ss.dependency 'PromiseKit/base'
+    ss.dependency 'SGImageCache/base'
+    ss.source_files = "PromiseKit/*.{h,m}"
   end
 end
