@@ -11,7 +11,6 @@
 @property (nonatomic,assign) BOOL canFlushImage;
 @property (nonatomic,assign) BOOL haveFlushedImage;
 @property (nonatomic,assign) BOOL registeredForNotifications;
-@property (nonatomic,strong) NSString *cachedImageURL;
 @property (nonatomic,strong) NSString *cachedImageName;
 @end
 
@@ -53,9 +52,6 @@
             return;
         }
         if (stillValid && !stillValid()) {
-            return;
-        }
-        if (url != me.cachedImageURL) {
             return;
         }
         if (duration > 0 && me.window) {
