@@ -159,17 +159,20 @@ void backgroundDo(void(^block)()) {
     }
 
     backgroundDo(^{
-        SGImageCacheTask *slowTask = [self existingSlowQueueTaskFor:url];
         SGImageCacheTask *fastTask = [self existingFastQueueTaskFor:url];
 
-        if (slowTask) { // reuse an executing slow task
-            [slowTask addCompletions:fastTask.completions];
-        } else { // add a fresh task to slow queue
-            SGImageCacheTask *task = [self taskForURL:url attempt:1];
-            [task addCompletions:fastTask.completions];
-            [self.cache.slowQueue addOperation:task];
+        if (fastTask) {
+            SGImageCacheTask *slowTask = [self existingSlowQueueTaskFor:url];
+            
+            if (slowTask) { // reuse an executing slow task
+                [slowTask addCompletions:fastTask.completions];
+            } else { // add a fresh task to slow queue
+                SGImageCacheTask *task = [self taskForURL:url attempt:1];
+                [task addCompletions:fastTask.completions];
+                [self.cache.slowQueue addOperation:task];
+            }
+            [fastTask cancel];
         }
-        [fastTask cancel];
     });
 }
 
