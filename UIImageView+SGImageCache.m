@@ -27,9 +27,22 @@
     [self setImageForURL:url placeholder:placeholder crossFadeDuration:0];
 }
 
+- (void)setImageForURL:(NSString*)url
+           placeholder:(UIImage*)placeholder
+            stillValid:(BOOL(^)())stillValid {
+    [self setImageForURL:url placeholder:placeholder crossFadeDuration:0 stillValid:stillValid];
+}
+
 - (void)setImageForURL:(NSString *)url
            placeholder:(UIImage *)placeholder
      crossFadeDuration:(NSTimeInterval)duration {
+    [self setImageForURL:url placeholder:placeholder crossFadeDuration:duration stillValid:nil];
+}
+
+- (void)setImageForURL:(NSString *)url
+           placeholder:(UIImage *)placeholder
+     crossFadeDuration:(NSTimeInterval)duration 
+            stillValid:(BOOL(^)())stillValid {
     __weakSelf me = self;
     if (self.image != placeholder) {
          self.image = placeholder;
@@ -37,6 +50,9 @@
     }
     [SGImageCache getImageForURL:url thenDo:^(UIImage *image) {
         if (!image) {
+            return;
+        }
+        if (stillValid && !stillValid()) {
             return;
         }
         if (url != me.cachedImageURL) {
