@@ -11,6 +11,7 @@
 @property (nonatomic,assign) BOOL canFlushImage;
 @property (nonatomic,assign) BOOL haveFlushedImage;
 @property (nonatomic,assign) BOOL registeredForNotifications;
+@property (nonatomic,strong) NSString *cachedImageURL;
 @property (nonatomic,strong) NSString *cachedImageName;
 @end
 
@@ -51,6 +52,9 @@
     [SGImageCache getImageForURL:url thenDo:^(UIImage *image) {
         if (!image) {
             return;
+        }
+        if (url != me.cachedImageURL) {
+          return;
         }
         if (stillValid && !stillValid()) {
             return;
