@@ -35,6 +35,7 @@
          self.image = placeholder;
         [me trigger:SGImageViewImageChanged withContext:placeholder];
     }
+    self.cachedImageURL = url;
     [SGImageCache getImageForURL:url thenDo:^(UIImage *image) {
         if (!image) {
             return;
