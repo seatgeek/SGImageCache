@@ -7,12 +7,22 @@
 #import "MGEvents.h"
 #import <objc/runtime.h>
 
-@interface UIImageView ()
-@property (nonatomic,assign) BOOL canFlushImage;
-@property (nonatomic,assign) BOOL haveFlushedImage;
-@property (nonatomic,assign) BOOL registeredForNotifications;
+@interface UIImageView (SGImageCache_Private)
 @property (nonatomic,strong) NSString *cachedImageURL;
-@property (nonatomic,strong) NSString *cachedImageName;
+@end
+
+@implementation UIImageView (SGImageCache_Private)
+
+@dynamic cachedImageURL;
+
+- (void)setCachedImageURL:(NSString*)object {
+     objc_setAssociatedObject(self, @selector(cachedImageURL), object, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+
+- (NSString*)cachedImageURL {
+    return objc_getAssociatedObject(self, @selector(cachedImageURL));
+}
+
 @end
 
 @implementation UIImageView (SGImageCache)
