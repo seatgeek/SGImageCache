@@ -87,3 +87,12 @@ If an image is requested for a URL that is already queued or in progress, `SGIma
 reuses the existing task, and if necessary will move it from `slowQueue` to `fastQueue`, 
 depending on which image fetch method was used. This ensures that there will be only one 
 network request per URL, regardless of how many times it's been asked for.
+
+### Intelligent image releasing on memory warning
+
+If you use `SGImageView` instead of `UIImageView`, and load the image via one of the
+`setImageForURL:` methods, off screen image views will release their `image` on memory
+warning, and subsequently restore them from cache if the image view returns to screen.
+This allows off screen but still existing view controllers (eg a previous controller in a
+nav controller's stack) to free up memory that would otherwise be unnecessarily retained, 
+and reduce the chances of your app being terminated by iOS in limited memory situations.

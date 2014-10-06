@@ -11,8 +11,8 @@
 #import <MGEvents/MGEvents.h>
 
 @interface SGImageView ()
-@property (nonatomic,assign) BOOL enableMemoryFlushing;
-@property (nonatomic,assign) BOOL haveFlushedImage;
+@property (nonatomic,assign) BOOL imageReleasingEnabled;
+@property (nonatomic,assign) BOOL haveReleasedImage;
 @property (nonatomic,assign) BOOL registeredForNotifications;
 @property (nonatomic,strong) NSString *cachedImageURL;
 @property (nonatomic,strong) NSString *cachedImageName;
@@ -23,14 +23,14 @@
 - (void)setImageForURL:(NSString *)url
            placeholder:(UIImage *)placeholder
      crossFadeDuration:(NSTimeInterval)duration {
-    self.enableMemoryFlushing = YES;
+    self.imageReleasingEnabled = YES;
     self.cachedImageName = nil;
     self.cachedImageURL = url;
     [super setImageForURL:url placeholder:placeholder crossFadeDuration:duration];
 }
 - (void)setImageWithName:(NSString *)name
        crossFadeDuration:(NSTimeInterval)duration {
-    self.enableMemoryFlushing = YES;
+    self.imageReleasingEnabled = YES;
     self.cachedImageURL = nil;
     self.cachedImageName = name;
     [super setImageWithName:name crossFadeDuration:duration];
@@ -46,7 +46,7 @@
 }
 
 - (void)restoreImageIfAble {
-    if (!self.enableMemoryFlushing || !self.haveFlushedImage) {
+    if (!self.imageReleasingEnabled || !self.haveReleasedImage) {
         return;
     }
     if (self.cachedImageName) {
@@ -60,30 +60,30 @@
             NSLog(@"Restoring image: %@", self.cachedImageURL);
         }
     }
-    self.haveFlushedImage = NO;
+    self.haveReleasedImage = NO;
 }
 
-- (void)flushIfAble {
-    if (!self.enableMemoryFlushing || self.window || !self.image) {
+- (void)releaseImageIfAble {
+    if (!self.imageReleasingEnabled || self.window || !self.image) {
         return;
     }
     if (SGImageCache.logging & SGImageCacheLogMemoryFlushing) {
         if (self.cachedImageURL) {
-            NSLog(@"SGImageView flushing image: %@", self.cachedImageURL);
+            NSLog(@"SGImageView releasing image: %@", self.cachedImageURL);
         } else if (self.cachedImageName) {
-            NSLog(@"SGImageView flushing image: %@", self.cachedImageName);
+            NSLog(@"SGImageView releasing image: %@", self.cachedImageName);
         }
     }
     self.image = nil;
-    self.haveFlushedImage = YES;
+    self.haveReleasedImage = YES;
 }
 
-- (void)setEnableMemoryFlushing:(BOOL)enableMemoryFlushing {
-    if (_enableMemoryFlushing == enableMemoryFlushing) {
+- (void)setImageReleasingEnabled:(BOOL)imageReleasingEnabled {
+    if (_imageReleasingEnabled == imageReleasingEnabled) {
         return;
     }
-    _enableMemoryFlushing = enableMemoryFlushing;
-    if (enableMemoryFlushing) {
+    _imageReleasingEnabled = imageReleasingEnabled;
+    if (imageReleasingEnabled) {
         [self registerForFlushingNotifications];
     }
 }
@@ -98,7 +98,7 @@
     self.registeredForNotifications = YES;
     __weakSelf me = self;
     [self when:SGImageCache.class does:SGImageCacheFlushed do:^{
-        [me flushIfAble];
+        [me releaseImageIfAble];
     }];
 }
 
