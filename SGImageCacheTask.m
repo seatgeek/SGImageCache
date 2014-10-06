@@ -60,7 +60,7 @@
 - (void)fetchRemoteImage {
     self.request = [SGHTTPRequest requestWithURL:[NSURL URLWithString:self.url]];
     
-    self.request.logging = SGImageCacheLogNothing;
+    self.request.logging = SGHTTPLogNothing;
     if (SGImageCache.logging & SGImageCacheLogErrors) {
         self.request.logging |= SGHTTPLogErrors;
     }
