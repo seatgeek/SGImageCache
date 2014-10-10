@@ -110,7 +110,11 @@
 
     // call the completion blocks on the main thread
     dispatch_async(dispatch_get_main_queue(), ^{
-        for (SGCacheFetchCompletion completion in self.completions) {
+        NSArray* completionsCopy = nil;
+        @synchronized (self) {
+            completionsCopy = self.completions.copy;
+        }
+        for (SGCacheFetchCompletion completion in completionsCopy) {
             completion(image);
         }
     });
