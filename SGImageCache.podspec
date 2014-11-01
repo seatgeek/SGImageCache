@@ -7,6 +7,7 @@ Pod::Spec.new do |s|
   s.author       = "SeatGeek"
   s.platform     = :ios, "7.0"
   s.source       = { :git => "https://github.com/seatgeek/SGImageCache.git", :tag => "2.0.0" }
+  s.source_files = "*.{h,m}"
   s.requires_arc = true
   s.dependency "SGHTTPRequest"
   s.dependency "MGEvents"
