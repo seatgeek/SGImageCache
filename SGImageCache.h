@@ -3,6 +3,7 @@
 //
 
 #import <UIKit/UIKit.h>
+#import <PromiseKit/PromiseKit.h>
 
 typedef void(^SGCacheFetchCompletion)(UIImage *image);
 
@@ -20,7 +21,7 @@ typedef NS_OPTIONS(NSInteger, SGImageCacheLogging) {
 #define __weakSelf __weak typeof(self)
 #endif
 
-#define SGImageCacheFlushed         @"SGImageCacheFlushed"
+#define SGImageCacheFlushed @"SGImageCacheFlushed"
 
 /**
 `SGImageCache` provides a fast and simple disk and memory cache for images
@@ -42,39 +43,41 @@ fetched from remote URLs.
 
 /**
 Fetch an image from cache if available, or remote it not.
+Returns a PromiseKit promise that resolves with a UIImage.
 
     NSString *url = @"http://example.com/image.jpg";
 
     __weak typeof(self) me = self;
-    [SGImageCache getImageForURL:url thenDo:^(UIImage *image) {
+    [SGImageCache getImageForURL:url].then(^(UIImage *image) {
         me.imageView.image = image;
-    }];
+    });
 
 - If the URL is not already queued a new image fetch task will be added to
   <fastQueue>.
-- If the URL is already in <fastQueue> the new completion block will be
-  added to the existing task.
+- If the URL is already in <fastQueue> the promise will resolve when the
+  existing task completes.
 - If the URL is already in <slowQueue> it will be moved to <fastQueue> and
-  the new completion block will be added to the existing task.
+  the promise will resolve when the existing task completes.
 */
-+ (void)getImageForURL:(NSString *)url thenDo:(SGCacheFetchCompletion)completion;
++ (PMKPromise *)getImageForURL:(NSString *)url;
 
 /**
 Fetch an image from cache if available, or remote it not.
+Returns a PromiseKit promise that resolves with a UIImage.
 
     NSString *url = @"http://example.com/image.jpg";
 
     __weak typeof(self) me = self;
-    [SGImageCache slowGetImageForURL:url thenDo:^(UIImage *image) {
+    [SGImageCache slowGetImageForURL:url].then(^(UIImage *image) {
         me.imageView.image = image;
-    }];
+    });
 
 - If the URL is not already queued a new image fetch task will be added to
   <slowQueue>.
-- If the URL is already in either <slowQueue> or <fastQueue> the new
-  completion block will be added to the existing task.
+- If the URL is already in either <slowQueue> or <fastQueue> the promise will
+  resolve when the existing task completes.
 */
-+ (void)slowGetImageForURL:(NSString *)url thenDo:(SGCacheFetchCompletion)completion;
++ (PMKPromise *)slowGetImageForURL:(NSString *)url;
 
 /**
 * Move an image fetch task from <fastQueue> to <slowQueue>.

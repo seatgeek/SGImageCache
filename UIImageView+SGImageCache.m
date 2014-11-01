@@ -59,7 +59,7 @@
         [me trigger:SGImageViewImageChanged withContext:placeholder];
     }
     self.cachedImageURL = url;
-    [SGImageCache getImageForURL:url thenDo:^(UIImage *image) {
+    [SGImageCache getImageForURL:url].then(^(UIImage *image) {
         if (!image) {
             return;
         }
@@ -82,7 +82,7 @@
             me.image = image;
             [me trigger:SGImageViewImageChanged withContext:image];
         }
-    }];
+    });
 }
 
 #pragma mark - Setting Images via Image name

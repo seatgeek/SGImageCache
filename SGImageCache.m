@@ -101,6 +101,22 @@ void backgroundDo(void(^block)()) {
     return image;
 }
 
++ (PMKPromise *)getImageForURL:(NSString *)url {
+    return [PMKPromise new:^(PMKPromiseFulfiller fulfill, PMKPromiseRejecter reject) {
+        [self getImageForURL:url thenDo:^(UIImage *image) {
+            fulfill(image);
+        }];
+    }];
+}
+
++ (PMKPromise *)slowGetImageForURL:(NSString *)url {
+    return [PMKPromise new:^(PMKPromiseFulfiller fulfill, PMKPromiseRejecter reject) {
+        [self slowGetImageForURL:url thenDo:^(UIImage *image) {
+            fulfill(image);
+        }];
+    }];
+}
+
 + (void)getImageForURL:(NSString *)url thenDo:(SGCacheFetchCompletion)completion {
     if (![url isKindOfClass:NSString.class] || !url.length) {
         return;
