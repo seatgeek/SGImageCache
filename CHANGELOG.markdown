@@ -1,3 +1,7 @@
+## 1.2.0
+
+- Added optional PromiseKit based completions, courtesy of @dbachrach.
+
 ## 1.1.0
 
 - No longer uses `imageNamed:` for memory caching, due to nasty performance 
