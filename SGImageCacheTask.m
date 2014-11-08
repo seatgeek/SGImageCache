@@ -84,16 +84,14 @@
         });
     };
     self.request.onNetworkReachable = ^{
-        [me finish];
+        [me fetchRemoteImage];
     };
     self.request.onFailure = ^(SGHTTPRequest *req) {
         id info = req.error.userInfo;
         NSInteger code = [info[AFNetworkingOperationFailingURLResponseErrorKey] statusCode];
         if (code == 404) { // give up on 404
             [me completedWithImage:nil];
-        } else { // let it fall through to a retry
-            [me finish];
-        }
+        } //else let it fall through to a retry
     };
     [self.request start];
 }
