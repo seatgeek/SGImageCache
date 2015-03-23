@@ -1,3 +1,9 @@
+## 2.0.0
+
+- PromiseKit is now compulsory, and non PromiseKit based methods have been 
+  removed
+- Fixed auto retrying of image fetches on return of network connectivity
+  
 ## 1.2.0
 
 - Added optional PromiseKit based completions, courtesy of @dbachrach.
