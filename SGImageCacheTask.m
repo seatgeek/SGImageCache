@@ -147,7 +147,9 @@
 #pragma mark - Getters
 
 - (NSArray *)completions {
-    return _completions.copy;
+    @synchronized (self) {
+        return _completions.copy;
+    }
 }
 
 - (BOOL)isExecuting {
