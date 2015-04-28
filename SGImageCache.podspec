@@ -11,5 +11,6 @@ Pod::Spec.new do |s|
   s.requires_arc = true
   s.dependency "SGHTTPRequest"
   s.dependency "MGEvents"
+  s.dependency "AFNetworking"
   s.dependency 'PromiseKit/base'
 end
