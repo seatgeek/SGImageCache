@@ -10,6 +10,7 @@ Pod::Spec.new do |s|
   s.source_files = "*.{h,m}"
   s.requires_arc = true
   s.dependency "SGHTTPRequest"
+  s.dependency "AFNetworking", '~> 2.0'
   s.dependency "MGEvents"
   s.dependency 'PromiseKit/base', '~> 1.5'
 end

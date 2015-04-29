@@ -5,6 +5,7 @@
 #import "SGImageCacheTask.h"
 #import "SGHTTPRequest.h"
 #import "AFURLConnectionOperation.h"
+#import "AFURLResponseSerialization.h"
 
 @interface SGImageCacheTask ()
 @property (nonatomic, strong) SGHTTPRequest *request;
