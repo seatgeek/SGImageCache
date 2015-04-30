@@ -54,35 +54,54 @@
      crossFadeDuration:(NSTimeInterval)duration 
             stillValid:(BOOL(^)())stillValid {
     __weakSelf me = self;
-    if (self.image != placeholder) {
-         self.image = placeholder;
-        [me trigger:SGImageViewImageChanged withContext:placeholder];
-    }
+
     self.cachedImageURL = url;
-    [SGImageCache getImageForURL:url].then(^(UIImage *image) {
-        if (!image) {
-            return;
-        }
-        if (url != me.cachedImageURL) {
-          return;
-        }
-        if (stillValid && !stillValid()) {
-            return;
-        }
+
+    if ([SGImageCache haveImageForURL:url]) {
+        UIImage *image = [SGImageCache imageForURL:url];
         if (duration > 0 && me.window) {
-            [UIView transitionWithView:me.superview
+            [UIView transitionWithView:self.superview
                               duration:duration
                                options:UIViewAnimationOptionTransitionCrossDissolve |
-                                       UIViewAnimationOptionAllowAnimatedContent
+             UIViewAnimationOptionAllowAnimatedContent
                             animations:^{
-                                me.image = image;
-                                [me trigger:SGImageViewImageChanged withContext:image];
+                                self.image = image;
+                                [self trigger:SGImageViewImageChanged withContext:image];
                             } completion:nil];
         } else {
-            me.image = image;
-            [me trigger:SGImageViewImageChanged withContext:image];
+            self.image = image;
+            [self trigger:SGImageViewImageChanged withContext:image];
         }
-    });
+    } else {
+        if (self.image != placeholder) {
+            self.image = placeholder;
+            [me trigger:SGImageViewImageChanged withContext:placeholder];
+        }
+        [SGImageCache getImageForURL:url].then(^(UIImage *image) {
+            if (!image) {
+                return;
+            }
+            if (url != me.cachedImageURL) {
+              return;
+            }
+            if (stillValid && !stillValid()) {
+                return;
+            }
+            if (duration > 0 && me.window) {
+                [UIView transitionWithView:me.superview
+                                  duration:duration
+                                   options:UIViewAnimationOptionTransitionCrossDissolve |
+                                           UIViewAnimationOptionAllowAnimatedContent
+                                animations:^{
+                                    me.image = image;
+                                    [me trigger:SGImageViewImageChanged withContext:image];
+                                } completion:nil];
+            } else {
+                me.image = image;
+                [me trigger:SGImageViewImageChanged withContext:image];
+            }
+        });
+    }
 }
 
 #pragma mark - Setting Images via Image name
