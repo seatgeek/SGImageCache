@@ -107,7 +107,7 @@ Returns a PromiseKit promise that resolves with a UIImage.
 /**
  * Move an image fetch task using http request headers from <fastQueue> to <slowQueue>.
  */
-+ (void)moveTaskToSlowQueueForURL:(NSString *)url  requestHeaders:(NSDictionary *)requestHeaders;;
++ (void)moveTaskToSlowQueueForURL:(NSString *)url  requestHeaders:(NSDictionary *)requestHeaders;
 
 #pragma mark - House Keeping
 
