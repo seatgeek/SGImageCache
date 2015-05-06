@@ -6,6 +6,7 @@
 #import "SGHTTPRequest.h"
 #import "AFURLConnectionOperation.h"
 #import "AFURLResponseSerialization.h"
+#import "SGImageCachePrivate.h"
 
 @interface SGImageCacheTask ()
 @property (nonatomic, strong) SGHTTPRequest *request;
@@ -22,10 +23,11 @@
     return self;
 }
 
-+ (instancetype)taskForURL:(NSString *)url attempt:(int)attempt {
++ (instancetype)taskForURL:(NSString *)url requestHeaders:(NSDictionary *)requestHeaders attempt:(int)attempt {
     SGImageCacheTask *task = self.new;
     task.attempt = attempt;
     task.url = url;
+    task.requestHeaders = requestHeaders;
     return task;
 }
 
@@ -60,7 +62,11 @@
 
 - (void)fetchRemoteImage {
     self.request = [SGHTTPRequest requestWithURL:[NSURL URLWithString:self.url]];
-    
+    self.request.responseFormat = SGHTTPDataTypeHTTP;
+    if (self.requestHeaders) {
+        self.request.requestHeaders = self.requestHeaders;
+    }
+
     self.request.logging = SGHTTPLogNothing;
     if (SGImageCache.logging & SGImageCacheLogErrors) {
         self.request.logging |= SGHTTPLogErrors;
@@ -77,7 +83,7 @@
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
             UIImage *image = [UIImage imageWithData:req.responseData];
             if (image) {
-                [SGImageCache addImageData:req.responseData forURL:me.url];
+                [SGImageCache addImageData:req.responseData forURL:me.url requestHeaders:me.requestHeaders];
                 [me completedWithImage:image];
             } else {
                 [me finish];
@@ -129,6 +135,22 @@
         [self finish];
     }
     [super cancel];
+}
+
+#pragma mark - Equivalence
+
+- (BOOL)matchesURL:(NSString *)url requestHeaders:(NSDictionary *)requestHeaders {
+    if (![url isEqualToString:self.url]) {
+        return NO;
+    }
+    if (!self.requestHeaders && !requestHeaders) {
+        return YES;
+    }
+    return [self.requestHeaders isEqualToDictionary:requestHeaders];
+}
+
+- (BOOL)isEqualToTask:(SGImageCacheTask *)task {
+    return [self matchesURL:task.url requestHeaders:task.requestHeaders];
 }
 
 #pragma mark - Setters

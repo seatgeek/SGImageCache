@@ -5,6 +5,7 @@
 #import "SGImageCache.h"
 #import "SGImageCacheTask.h"
 #import <MGEvents/MGEvents.h>
+#import "SGImageCachePrivate.h"
 
 #define FOLDER_NAME @"generic_images_cache"
 #define MAX_RETRIES 5
@@ -44,19 +45,27 @@ void backgroundDo(void(^block)()) {
 #pragma mark - Public API
 
 + (BOOL)haveImageForURL:(NSString *)url {
+    return [self haveImageForURL:url requestHeaders:nil];
+}
+
++ (BOOL)haveImageForURL:(NSString *)url requestHeaders:(NSDictionary *)requestHeaders {
     if (![url isKindOfClass:NSString.class]) {
         return NO;
     }
-    return [NSFileManager.defaultManager fileExistsAtPath:[self.cache pathForURL:url]];
+    return [NSFileManager.defaultManager fileExistsAtPath:[self.cache pathForURL:url requestHeaders:requestHeaders]];
 }
 
 + (UIImage *)imageForURL:(NSString *)url {
+    return [self imageForURL:url requestHeaders:nil];
+}
+
++ (UIImage *)imageForURL:(NSString *)url requestHeaders:(NSDictionary *)requestHeaders {
     UIImage *image = [self.globalMemCache objectForKey:url];
     if (image) {
         return image;
     }
 
-    NSData *imageData = [NSData dataWithContentsOfFile:[self.cache pathForURL:url]];
+    NSData *imageData = [NSData dataWithContentsOfFile:[self.cache pathForURL:url requestHeaders:requestHeaders]];
     image = [UIImage imageWithData:imageData];
     if (!image) {
         return nil;
@@ -102,29 +111,41 @@ void backgroundDo(void(^block)()) {
 }
 
 + (PMKPromise *)getImageForURL:(NSString *)url {
+    return [self getImageForURL:url requestHeaders:nil];
+}
+
++ (PMKPromise *)getImageForURL:(NSString *)url requestHeaders:(NSDictionary *)requestHeaders {
     return [PMKPromise new:^(PMKPromiseFulfiller fulfill, PMKPromiseRejecter reject) {
-        [self getImageForURL:url thenDo:^(UIImage *image) {
+        [self getImageForURL:url requestHeaders:requestHeaders thenDo:^(UIImage *image) {
             fulfill(image);
         }];
     }];
 }
 
 + (PMKPromise *)slowGetImageForURL:(NSString *)url {
+    return [self slowGetImageForURL:url requestHeaders:nil];
+}
+
++ (PMKPromise *)slowGetImageForURL:(NSString *)url requestHeaders:(NSDictionary *)requestHeaders {
     return [PMKPromise new:^(PMKPromiseFulfiller fulfill, PMKPromiseRejecter reject) {
-        [self slowGetImageForURL:url thenDo:^(UIImage *image) {
+        [self slowGetImageForURL:url requestHeaders:requestHeaders thenDo:^(UIImage *image) {
             fulfill(image);
         }];
     }];
 }
 
 + (void)getImageForURL:(NSString *)url thenDo:(SGCacheFetchCompletion)completion {
+    [self getImageForURL:url requestHeaders:nil thenDo:completion];
+}
+
++ (void)getImageForURL:(NSString *)url requestHeaders:(NSDictionary *)requestHeaders thenDo:(SGCacheFetchCompletion)completion {
     if (![url isKindOfClass:NSString.class] || !url.length) {
         return;
     }
 
     backgroundDo(^{
-        SGImageCacheTask *slowTask = [self existingSlowQueueTaskFor:url];
-        SGImageCacheTask *fastTask = [self existingFastQueueTaskFor:url];
+        SGImageCacheTask *slowTask = [self existingSlowQueueTaskFor:url requestHeaders:requestHeaders];
+        SGImageCacheTask *fastTask = [self existingFastQueueTaskFor:url requestHeaders:requestHeaders];
 
         if (slowTask.isExecuting) { // reuse an executing slow task
             [slowTask addCompletion:completion];
@@ -136,7 +157,7 @@ void backgroundDo(void(^block)()) {
             [fastTask addCompletions:slowTask.completions];
             [slowTask cancel];
         } else { // add a fresh task to fast queue
-            SGImageCacheTask *task = [self taskForURL:url attempt:1];
+            SGImageCacheTask *task = [self taskForURL:url requestHeaders:requestHeaders attempt:1];
             [task addCompletion:completion];
             task.forceDecompress = YES;
             [self.cache.fastQueue addOperation:task];
@@ -144,14 +165,14 @@ void backgroundDo(void(^block)()) {
     });
 }
 
-+ (void)slowGetImageForURL:(NSString *)url thenDo:(SGCacheFetchCompletion)completion {
++ (void)slowGetImageForURL:(NSString *)url requestHeaders:(NSDictionary *)requestHeaders thenDo:(SGCacheFetchCompletion)completion {
     if (![url isKindOfClass:NSString.class] || !url.length) {
         return;
     }
 
     backgroundDo(^{
-        SGImageCacheTask *slowTask = [self existingSlowQueueTaskFor:url];
-        SGImageCacheTask *fastTask = [self existingFastQueueTaskFor:url];
+        SGImageCacheTask *slowTask = [self existingSlowQueueTaskFor:url requestHeaders:requestHeaders];
+        SGImageCacheTask *fastTask = [self existingFastQueueTaskFor:url requestHeaders:requestHeaders];
 
         if (fastTask && !slowTask.isExecuting) { // reuse existing fast task
             [fastTask addCompletion:completion];
@@ -162,7 +183,7 @@ void backgroundDo(void(^block)()) {
             [slowTask addCompletions:fastTask.completions];
             [fastTask cancel];
         } else { // add a fresh task to slow queue
-            SGImageCacheTask *task = [self taskForURL:url attempt:1];
+            SGImageCacheTask *task = [self taskForURL:url requestHeaders:requestHeaders attempt:1];
             [task addCompletion:completion];
             [self.cache.slowQueue addOperation:task];
         }
@@ -170,20 +191,24 @@ void backgroundDo(void(^block)()) {
 }
 
 + (void)moveTaskToSlowQueueForURL:(NSString *)url {
+    [self moveTaskToSlowQueueForURL:url requestHeaders:nil];
+}
+
++ (void)moveTaskToSlowQueueForURL:(NSString *)url requestHeaders:(NSDictionary *)requestHeaders {
     if (![url isKindOfClass:NSString.class] || !url.length) {
         return;
     }
 
     backgroundDo(^{
-        SGImageCacheTask *fastTask = [self existingFastQueueTaskFor:url];
+        SGImageCacheTask *fastTask = [self existingFastQueueTaskFor:url requestHeaders:requestHeaders];
 
         if (fastTask) {
-            SGImageCacheTask *slowTask = [self existingSlowQueueTaskFor:url];
+            SGImageCacheTask *slowTask = [self existingSlowQueueTaskFor:url requestHeaders:requestHeaders];
             
             if (slowTask) { // reuse an executing slow task
                 [slowTask addCompletions:fastTask.completions];
             } else { // add a fresh task to slow queue
-                SGImageCacheTask *task = [self taskForURL:url attempt:1];
+                SGImageCacheTask *task = [self taskForURL:url requestHeaders:requestHeaders attempt:1];
                 [task addCompletions:fastTask.completions];
                 [self.cache.slowQueue addOperation:task];
             }
@@ -225,14 +250,14 @@ void backgroundDo(void(^block)()) {
     });
 }
 
-+ (void)addImageData:(NSData *)data forURL:(NSString *)url {
-    [data writeToFile:[self.cache pathForURL:url] atomically:YES];
++ (void)addImageData:(NSData *)data forURL:(NSString *)url requestHeaders:(NSDictionary *)requestHeaders {
+    [data writeToFile:[self.cache pathForURL:url requestHeaders:requestHeaders] atomically:YES];
 }
 
 #pragma mark - Task Factory
 
-+ (SGImageCacheTask *)taskForURL:(NSString *)url attempt:(int)attempt {
-    SGImageCacheTask *task = [SGImageCacheTask taskForURL:url attempt:attempt];
++ (SGImageCacheTask *)taskForURL:(NSString *)url requestHeaders:(NSDictionary *)requestHeaders attempt:(int)attempt {
+    SGImageCacheTask *task = [SGImageCacheTask taskForURL:url requestHeaders:requestHeaders attempt:attempt];
     __weak SGImageCacheTask *wTask = task;
     task.completionBlock = ^{
         if (!wTask.succeeded) {
@@ -244,18 +269,18 @@ void backgroundDo(void(^block)()) {
 
 #pragma mark - Task Finders
 
-+ (SGImageCacheTask *)existingSlowQueueTaskFor:(NSString *)url {
++ (SGImageCacheTask *)existingSlowQueueTaskFor:(NSString *)url requestHeaders:(NSDictionary *)requestHeaders {
     for (SGImageCacheTask *task in self.cache.slowQueue.operations) {
-        if ([task.url isEqualToString:url]) {
+        if ([task matchesURL:url requestHeaders:requestHeaders]) {
             return task;
         }
     }
     return nil;
 }
 
-+ (SGImageCacheTask *)existingFastQueueTaskFor:(NSString *)url {
++ (SGImageCacheTask *)existingFastQueueTaskFor:(NSString *)url requestHeaders:(NSDictionary *)requestHeaders  {
     for (SGImageCacheTask *task in self.cache.fastQueue.operations) {
-        if ([task.url isEqualToString:url]) {
+        if ([task matchesURL:url requestHeaders:requestHeaders]) {
             return task;
         }
     }
@@ -275,7 +300,7 @@ void backgroundDo(void(^block)()) {
     }
 
     // make and add a retry task
-    SGImageCacheTask *retryTask = [self taskForURL:task.url attempt:task.attempt + 1];
+    SGImageCacheTask *retryTask = [self taskForURL:task.url requestHeaders:task.requestHeaders attempt:task.attempt + 1];
     [retryTask addCompletions:task.completions];
     [self.cache.fastQueue addOperation:retryTask];
 }
@@ -327,13 +352,35 @@ void backgroundDo(void(^block)()) {
 
 #pragma mark - Getters
 
-- (NSString *)pathForURL:(NSString *)url {
-    return [NSString stringWithFormat:@"%@/%@", self.cachePath, @(url.hash)];
+- (NSString *)hashForDictionary:(NSDictionary *)dict {
+    NSMutableString *hash = [NSMutableString stringWithFormat:@"%@", @(dict.hash)];
+    for (id key in dict) {
+        [hash appendFormat:@"%@", @([key hash])];
+        id value = dict[key];
+        if ([value conformsToProtocol:@protocol(NSObject)]) {
+            [hash appendFormat:@"%@", @([value hash])];
+        }
+    }
+    return hash;
 }
 
-- (NSString *)relativePathForURL:(NSString *)url {
-    return [NSString stringWithFormat:@"../Library/Caches/%@/%@", self.folderName,
-                                      @(url.hash)];
+- (NSString *)pathForURL:(NSString *)url requestHeaders:(NSDictionary *)requestHeaders {
+    if (requestHeaders) {
+        return [NSString stringWithFormat:@"%@/%@%@", self.cachePath, @(url.hash),
+                [self hashForDictionary:requestHeaders]];
+    } else {
+        return [NSString stringWithFormat:@"%@/%@", self.cachePath, @(url.hash)];
+    }
+}
+
+- (NSString *)relativePathForURL:(NSString *)url requestHeaders:(NSDictionary *)requestHeaders {
+    if (requestHeaders) {
+        return [NSString stringWithFormat:@"../Library/Caches/%@/%@%@", self.folderName,
+                @(url.hash), [self hashForDictionary:requestHeaders]];
+    } else {
+        return [NSString stringWithFormat:@"../Library/Caches/%@/%@", self.folderName,
+                                        @(url.hash)];
+    }
 }
 
 - (NSOperationQueue *)fastQueue {

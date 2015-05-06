@@ -62,6 +62,17 @@ Returns a PromiseKit promise that resolves with a UIImage.
 + (PMKPromise *)getImageForURL:(NSString *)url;
 
 /**
+ Fetch an image from cache if available, or remote it not, sending HTTP headers
+ with the request.
+ Returns a PromiseKit promise that resolves with a UIImage.
+
+ NSString *url = @"http://example.com/image.jpg";
+ NSDictionary *requestHeaders = @{@"Authorization" : @"abcd1234"};
+
+ */
++ (PMKPromise *)getImageForURL:(NSString *)url requestHeaders:(NSDictionary *)requestHeaders;
+
+/**
 Fetch an image from cache if available, or remote it not.
 Returns a PromiseKit promise that resolves with a UIImage.
 
@@ -80,9 +91,23 @@ Returns a PromiseKit promise that resolves with a UIImage.
 + (PMKPromise *)slowGetImageForURL:(NSString *)url;
 
 /**
+ Fetch an image from cache if available, or remote it not, sending HTTP headers
+ with the request.
+ Returns a PromiseKit promise that resolves with a UIImage.
+
+ NSString *url = @"http://example.com/image.jpg";
+ NSDictionary *requestHeaders = @{@"Authorization" : @"abcd1234"}; */
++ (PMKPromise *)slowGetImageForURL:(NSString *)url requestHeaders:(NSDictionary *)requestHeaders;
+
+/**
 * Move an image fetch task from <fastQueue> to <slowQueue>.
 */
 + (void)moveTaskToSlowQueueForURL:(NSString *)url;
+
+/**
+ * Move an image fetch task using http request headers from <fastQueue> to <slowQueue>.
+ */
++ (void)moveTaskToSlowQueueForURL:(NSString *)url  requestHeaders:(NSDictionary *)requestHeaders;;
 
 #pragma mark - House Keeping
 
@@ -121,6 +146,11 @@ Returns a PromiseKit promise that resolves with a UIImage.
 + (BOOL)haveImageForURL:(NSString *)url;
 
 /**
+ * Returns YES if the image with matching URL and HTTP headers is found in the cache.
+ */
++ (BOOL)haveImageForURL:(NSString *)url requestHeaders:(NSDictionary *)requestHeaders;
+
+/**
 * Retrieves an image from cache. Returns nil if the image is not found in
 * the cache.
 *
@@ -129,6 +159,18 @@ Returns a PromiseKit promise that resolves with a UIImage.
 * [getImageForURL:thenDo:](<+[SGImageCache getImageForURL:thenDo:]>) instead.
 */
 + (UIImage *)imageForURL:(NSString *)url;
+
+
+/**
+ * Retrieves an image  with matching URL and HTTP headers is found in the cache.
+ * Returns nil if the image is not found in the cache.
+ *
+ * @warning If you want a single method which will return an image from either
+ * cache or remote, use
+ * [getImageForURL:thenDo:](<+[SGImageCache getImageForURL:thenDo:]>) instead.
+ */
+
++ (UIImage *)imageForURL:(NSString *)url requestHeaders:(NSDictionary *)requestHeaders;
 
 /**
  * Retrieves an image from the cache or application asset bundle if not cached.
@@ -159,16 +201,5 @@ Returns a PromiseKit promise that resolves with a UIImage.
  * periodically when and which items to purge from memory.
  */
 + (void)setMemoryCacheSize:(NSUInteger)megaBytes;
-
-#pragma mark - Ignore below here plz
-
-@property (atomic, copy) NSString *folderName;
-@property (atomic, copy) NSString *cachePath;
-
-+ (SGImageCache *)cache;
-- (NSString *)makeCachePath;
-- (NSString *)pathForURL:(NSString *)url;
-- (NSString *)relativePathForURL:(NSString *)url;
-+ (void)addImageData:(NSData *)data forURL:(NSString *)url;
 
 @end
