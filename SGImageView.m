@@ -97,7 +97,7 @@
     }
     self.registeredForNotifications = YES;
     __weakSelf me = self;
-    [self when:SGImageCache.class does:SGImageCacheFlushed do:^{
+    [self when:SGImageCache.class does:SGCacheFlushed do:^{
         [me releaseImageIfAble];
     }];
 }

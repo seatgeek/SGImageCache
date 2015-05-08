@@ -4,24 +4,7 @@
 
 #import <UIKit/UIKit.h>
 #import <PromiseKit/PromiseKit.h>
-
-typedef void(^SGCacheFetchCompletion)(UIImage *image);
-
-typedef NS_OPTIONS(NSInteger, SGImageCacheLogging) {
-    SGImageCacheLogNothing            = 0,
-    SGImageCacheLogRequests           = 1 << 0,
-    SGImageCacheLogResponses          = 1 << 1,
-    SGImageCacheLogErrors             = 1 << 2,
-    SGImageCacheLogMemoryFlushing     = 1 << 3,
-    SGImageCacheLogAll                = (SGImageCacheLogRequests|SGImageCacheLogResponses|
-                                         SGImageCacheLogErrors|SGImageCacheLogMemoryFlushing)
-};
-
-#ifndef __weakSelf
-#define __weakSelf __weak typeof(self)
-#endif
-
-#define SGImageCacheFlushed @"SGImageCacheFlushed"
+#import "SGCache.h"
 
 /**
 `SGImageCache` provides a fast and simple disk and memory cache for images
@@ -35,7 +18,7 @@ fetched from remote URLs.
     }];
 */
 
-@interface SGImageCache : NSObject
+@interface SGImageCache : SGCache
 
 #pragma mark - Fetching Images
 
@@ -99,16 +82,6 @@ Returns a PromiseKit promise that resolves with a UIImage.
  NSDictionary *requestHeaders = @{@"Authorization" : @"abcd1234"}; */
 + (PMKPromise *)slowGetImageForURL:(NSString *)url requestHeaders:(NSDictionary *)requestHeaders;
 
-/**
-* Move an image fetch task from <fastQueue> to <slowQueue>.
-*/
-+ (void)moveTaskToSlowQueueForURL:(NSString *)url;
-
-/**
- * Move an image fetch task using http request headers from <fastQueue> to <slowQueue>.
- */
-+ (void)moveTaskToSlowQueueForURL:(NSString *)url  requestHeaders:(NSDictionary *)requestHeaders;
-
 #pragma mark - House Keeping
 
 /** @name House keeping */
@@ -118,25 +91,6 @@ Returns a PromiseKit promise that resolves with a UIImage.
 * which the image was added to the cache.
 */
 + (void)flushImagesOlderThan:(NSTimeInterval)age;
-
-#pragma mark - Operation Queues
-
-/** @name Operation queues */
-
-/**
-* The operation queue used for non urgent image fetches
-* ([slowGetImageForURL:thenDo:](<+[SGImageCache slowGetImageForURL:thenDo:]>)).
-* By default this is a serial queue.
-*/
-@property (nonatomic, strong) NSOperationQueue *slowQueue;
-
-/**
-* The operation queue used for urgent image fetches
-* ([getImageForURL:thenDo:](<+[SGImageCache getImageForURL:thenDo:]>)). By
-* default this queue uses the maximum number of concurrent operations as
-* determined by iOS.
-*/
-@property (nonatomic, strong) NSOperationQueue *fastQueue;
 
 /** @name Misc helpers */
 
@@ -170,26 +124,13 @@ Returns a PromiseKit promise that resolves with a UIImage.
  * [getImageForURL:thenDo:](<+[SGImageCache getImageForURL:thenDo:]>) instead.
  */
 
-+ (UIImage *)imageForURL:(NSString *)url requestHeaders:(NSDictionary *)requestHeaders;
++ (UIImage *)imageForURL:(NSString *)url requestHeaders:(NSDictionary *)headers;
 
 /**
  * Retrieves an image from the cache or application asset bundle if not cached.
  */
 
 + (UIImage *)imageNamed:(NSString *)named;
-
-#pragma - mark - Logging
-
-/** @name Logging */
-
-/**
-* Set logging level (defaults to SGImageCacheLogNothing)
-*/
-+ (void)setLogging:(SGImageCacheLogging)logging;
-/**
-* Logging level (defaults to SGImageCacheLogNothing)
-*/
-+ (SGImageCacheLogging)logging;
 
 #pragma - mark - Memory Cache
 
@@ -201,5 +142,7 @@ Returns a PromiseKit promise that resolves with a UIImage.
  * periodically when and which items to purge from memory.
  */
 + (void)setMemoryCacheSize:(NSUInteger)megaBytes;
+
++ (NSCache *)globalMemCache;
 
 @end
