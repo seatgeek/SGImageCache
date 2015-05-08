@@ -5,6 +5,7 @@
 #import "SGCacheTask.h"
 #import "SGHTTPRequest.h"
 #import "AFURLConnectionOperation.h"
+#import "AFURLResponseSerialization.h"
 #import "SGCachePrivate.h"
 
 @interface SGCacheTask ()
