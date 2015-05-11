@@ -115,8 +115,28 @@
 + (PMKPromise *)getImageForURL:(NSString *)url requestHeaders:(NSDictionary *)headers
       cacheKey:(NSString *)cacheKey {
     return [PMKPromise new:^(PMKPromiseFulfiller fulfill, PMKPromiseRejecter reject) {
-        [self getImageForURL:url requestHeaders:headers cacheKey:cacheKey thenDo:^(UIImage *image) {
+        [self getImageForURL:url requestHeaders:headers cacheKey:cacheKey remoteFetchOnly:NO
+                      thenDo:^(UIImage *image) {
             fulfill(image);
+        }];
+    }];
+}
+
++ (PMKPromise *)getRemoteImageForURL:(NSString *)url {
+    return [self getRemoteImageForURL:url requestHeaders:nil];
+}
+
++ (PMKPromise *)getRemoteImageForURL:(NSString *)url requestHeaders:(NSDictionary *)headers {
+    id cacheKey = [self.cache cacheKeyFor:url requestHeaders:headers];
+    return [self getRemoteImageForURL:url requestHeaders:headers cacheKey:cacheKey];
+}
+
++ (PMKPromise *)getRemoteImageForURL:(NSString *)url requestHeaders:(NSDictionary *)headers
+                            cacheKey:(NSString *)cacheKey {
+    return [PMKPromise new:^(PMKPromiseFulfiller fulfill, PMKPromiseRejecter reject) {
+        [self getImageForURL:url requestHeaders:headers cacheKey:cacheKey remoteFetchOnly:YES
+                      thenDo:^(UIImage *image) {
+                          fulfill(image);
         }];
     }];
 }
@@ -141,7 +161,8 @@
 }
 
 + (void)getImageForURL:(NSString *)url requestHeaders:(NSDictionary *)headers
-      cacheKey:(NSString *)cacheKey thenDo:(SGCacheFetchCompletion)completion {
+      cacheKey:(NSString *)cacheKey  remoteFetchOnly:(BOOL)remoteOnly
+                thenDo:(SGCacheFetchCompletion)completion {
     if (![url isKindOfClass:NSString.class] || !url.length) {
         return;
     }
@@ -162,6 +183,7 @@
         } else { // add a fresh task to fast queue
             SGImageCacheTask *task = (id)[self taskForURL:url requestHeaders:headers
                   cacheKey:cacheKey attempt:1];
+            task.remoteFetchOnly = remoteOnly;
             [task addCompletion:completion];
             task.forceDecompress = YES;
             [self.cache.fastQueue addOperation:task];

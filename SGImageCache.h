@@ -80,6 +80,62 @@ the promise will resolve when the existing task completes.
       cacheKey:(NSString *)cacheKey;
 
 /**
+ Fetch an image from remote. Returns a PromiseKit promise that resolves with
+ a UIImage.
+
+ NSString *url = @"http://example.com/image.jpg";
+
+ __weak typeof(self) me = self;
+ [SGImageCache getImageForURL:url].then(^(UIImage *image) {
+ me.imageView.image = image;
+ });
+
+ - If the URL is not already queued a new image fetch task will be added to
+ <fastQueue>.
+ - If the URL is already in <fastQueue> the promise will resolve when the
+ existing task completes.
+ - If the URL is already in <slowQueue> it will be moved to <fastQueue> and
+ the promise will resolve when the existing task completes.
+ */
++ (PMKPromise *)getRemoteImageForURL:(NSString *)url;
+
+
+/**
+ Fetch an image from remote, sending HTTP headers with the request.
+ Returns a PromiseKit promise that resolves with a UIImage.
+
+ NSString *url = @"http://example.com/image.jpg";
+ NSDictionary *requestHeaders = @{@"Authorization" : @"abcd1234"};
+
+ - If the URL is not already queued a new image fetch task will be added to
+ <fastQueue>.
+ - If the URL is already in <fastQueue> the promise will resolve when the
+ existing task completes.
+ - If the URL is already in <slowQueue> it will be moved to <fastQueue> and
+ the promise will resolve when the existing task completes.
+ */
++ (PMKPromise *)getRemoteImageForURL:(NSString *)url requestHeaders:(NSDictionary *)headers;
+
+
+/**
+ Fetch an image from remote, sending HTTP headers with the request and providing 
+ an explicit cache key. Returns a PromiseKit promise that resolves with a UIImage.
+
+ NSString *url = @"http://example.com/image.jpg";
+ NSDictionary *requestHeaders = @{@"Authorization" : @"abcd1234"};
+ NSStrig *cacheKey = [NSString stringWithFormat:@"%@%@", username, url];
+
+ - If the URL is not already queued a new image fetch task will be added to
+ <fastQueue>.
+ - If the URL is already in <fastQueue> the promise will resolve when the
+ existing task completes.
+ - If the URL is already in <slowQueue> it will be moved to <fastQueue> and
+ the promise will resolve when the existing task completes.
+ */
++ (PMKPromise *)getRemoteImageForURL:(NSString *)url requestHeaders:(NSDictionary *)headers
+                      cacheKey:(NSString *)cacheKey;
+
+/**
 Fetch an image from cache if available, or remote it not.
 Returns a PromiseKit promise that resolves with a UIImage.
 

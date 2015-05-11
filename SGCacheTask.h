@@ -11,6 +11,7 @@
 @property (nonatomic, copy) NSString *cacheKey;
 @property (nonatomic, assign) BOOL succeeded;
 @property (nonatomic, assign) int attempt;
+@property (nonatomic, assign) BOOL remoteFetchOnly;
 
 + (instancetype)taskForURL:(NSString *)url requestHeaders:(NSDictionary *)headers
       cacheKey:(NSString *)cacheKey attempt:(int)attempt;

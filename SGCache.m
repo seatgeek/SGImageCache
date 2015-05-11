@@ -83,7 +83,27 @@ void backgroundDo(void(^block)()) {
 + (PMKPromise *)getFileForURL:(NSString *)url requestHeaders:(NSDictionary *)headers
       cacheKey:(NSString *)cacheKey {
     return [PMKPromise new:^(PMKPromiseFulfiller fulfill, PMKPromiseRejecter reject) {
-        [self getFileForURL:url requestHeaders:headers cacheKey:cacheKey thenDo:^(NSData *data) {
+        [self getFileForURL:url requestHeaders:headers cacheKey:cacheKey remoteFetchOnly:NO
+                     thenDo:^(NSData *data) {
+            fulfill(data);
+        }];
+    }];
+}
+
++ (PMKPromise *)getRemoteFileForURL:(NSString *)url {
+    return [self getRemoteFileForURL:url requestHeaders:nil];
+}
+
++ (PMKPromise *)getRemoteFileForURL:(NSString *)url requestHeaders:(NSDictionary *)headers {
+    id cacheKey = [self.cache cacheKeyFor:url requestHeaders:headers];
+    return [self getRemoteFileForURL:url requestHeaders:headers cacheKey:cacheKey];
+}
+
++ (PMKPromise *)getRemoteFileForURL:(NSString *)url requestHeaders:(NSDictionary *)headers
+                           cacheKey:(NSString *)cacheKey {
+    return [PMKPromise new:^(PMKPromiseFulfiller fulfill, PMKPromiseRejecter reject) {
+        [self getFileForURL:url requestHeaders:headers cacheKey:cacheKey remoteFetchOnly:YES
+                     thenDo:^(NSData *data) {
             fulfill(data);
         }];
     }];
@@ -109,7 +129,8 @@ void backgroundDo(void(^block)()) {
 }
 
 + (void)getFileForURL:(NSString *)url requestHeaders:(NSDictionary *)headers
-      cacheKey:(NSString *)cacheKey thenDo:(SGCacheFetchCompletion)completion {
+             cacheKey:(NSString *)cacheKey remoteFetchOnly:(BOOL)remoteOnly
+               thenDo:(SGCacheFetchCompletion)completion {
     if (![url isKindOfClass:NSString.class] || !url.length) {
         return;
     }
@@ -129,6 +150,7 @@ void backgroundDo(void(^block)()) {
         } else { // add a fresh task to fast queue
             SGCacheTask *task = [self taskForURL:url requestHeaders:headers cacheKey:cacheKey
                   attempt:1];
+            task.remoteFetchOnly = remoteOnly;
             [task addCompletion:completion];
             [self.cache.fastQueue addOperation:task];
         }

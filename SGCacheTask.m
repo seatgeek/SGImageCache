@@ -55,7 +55,7 @@
         [self finish];
         return;
     }
-    if ([SGCache haveFileForURL:self.url]) {
+    if (!self.remoteFetchOnly && [SGCache haveFileForURL:self.url]) {
         [self completedWithFile:[SGCache fileForURL:self.url]];
     } else {
         [self fetchRemoteFile];
