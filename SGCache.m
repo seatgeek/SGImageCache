@@ -45,32 +45,45 @@ void backgroundDo(void(^block)()) {
 #pragma mark - Public API
 
 + (BOOL)haveFileForURL:(NSString *)url {
-    return [self haveFileForURL:url requestHeaders:nil];
+    return [self haveFileForCacheKey:[self.cache cacheKeyFor:url requestHeaders:nil]];
 }
 
-+ (BOOL)haveFileForURL:(NSString *)url requestHeaders:(NSDictionary *)requestHeaders {
-    if (![url isKindOfClass:NSString.class]) {
++ (BOOL)haveFileForURL:(NSString *)url requestHeaders:(NSDictionary *)headers {
+    return [self haveFileForCacheKey:[self.cache cacheKeyFor:url requestHeaders:headers]];
+}
+
++ (BOOL)haveFileForCacheKey:(NSString *)cacheKey {
+    if (![cacheKey isKindOfClass:NSString.class]) {
         return NO;
     }
-    return [NSFileManager.defaultManager fileExistsAtPath:[self.cache pathForURL:url
-          requestHeaders:requestHeaders]];
+    return [NSFileManager.defaultManager fileExistsAtPath:[self.cache pathForCacheKey:cacheKey]];
 }
 
 + (NSData *)fileForURL:(NSString *)url {
-    return [self fileForURL:url requestHeaders:nil];
+    return [NSData dataWithContentsOfFile:[self.cache pathForURL:url requestHeaders:nil]];
 }
 
 + (NSData *)fileForURL:(NSString *)url requestHeaders:(NSDictionary *)headers {
     return [NSData dataWithContentsOfFile:[self.cache pathForURL:url requestHeaders:headers]];
 }
 
++ (NSData *)fileForCacheKey:(NSString *)cacheKey {
+    return [NSData dataWithContentsOfFile:[self.cache pathForCacheKey:cacheKey]];
+}
+
 + (PMKPromise *)getFileForURL:(NSString *)url {
     return [self getFileForURL:url requestHeaders:nil];
 }
 
-+ (PMKPromise *)getFileForURL:(NSString *)url requestHeaders:(NSDictionary *)requestHeaders {
++ (PMKPromise *)getFileForURL:(NSString *)url requestHeaders:(NSDictionary *)headers {
+    id cacheKey = [self.cache cacheKeyFor:url requestHeaders:headers];
+    return [self getFileForURL:url requestHeaders:headers cacheKey:cacheKey];
+}
+
++ (PMKPromise *)getFileForURL:(NSString *)url requestHeaders:(NSDictionary *)headers
+      cacheKey:(NSString *)cacheKey {
     return [PMKPromise new:^(PMKPromiseFulfiller fulfill, PMKPromiseRejecter reject) {
-        [self getFileForURL:url requestHeaders:requestHeaders thenDo:^(NSData *data) {
+        [self getFileForURL:url requestHeaders:headers cacheKey:cacheKey thenDo:^(NSData *data) {
             fulfill(data);
         }];
     }];
@@ -80,29 +93,30 @@ void backgroundDo(void(^block)()) {
     return [self slowGetFileForURL:url requestHeaders:nil];
 }
 
-+ (PMKPromise *)slowGetFileForURL:(NSString *)url requestHeaders:(NSDictionary *)requestHeaders {
++ (PMKPromise *)slowGetFileForURL:(NSString *)url requestHeaders:(NSDictionary *)headers {
+    id cacheKey = [self.cache cacheKeyFor:url requestHeaders:headers];
+    return [self slowGetFileForURL:url requestHeaders:headers cacheKey:cacheKey];
+}
+
++ (PMKPromise *)slowGetFileForURL:(NSString *)url requestHeaders:(NSDictionary *)headers
+      cacheKey:(NSString *)cacheKey {
     return [PMKPromise new:^(PMKPromiseFulfiller fulfill, PMKPromiseRejecter reject) {
-        [self slowGetFileForURL:url requestHeaders:requestHeaders thenDo:^(NSData *data) {
-            fulfill(data);
-        }];
+        [self slowGetFileForURL:url requestHeaders:headers cacheKey:cacheKey
+              thenDo:^(NSData *data) {
+                  fulfill(data);
+              }];
     }];
 }
 
-+ (void)getFileForURL:(NSString *)url thenDo:(SGCacheFetchCompletion)completion {
-    [self getFileForURL:url requestHeaders:nil thenDo:completion];
-}
-
-+ (void)getFileForURL:(NSString *)url requestHeaders:(NSDictionary *)requestHeaders
-      thenDo:(SGCacheFetchCompletion)completion {
++ (void)getFileForURL:(NSString *)url requestHeaders:(NSDictionary *)headers
+      cacheKey:(NSString *)cacheKey thenDo:(SGCacheFetchCompletion)completion {
     if (![url isKindOfClass:NSString.class] || !url.length) {
         return;
     }
 
     backgroundDo(^{
-        SGCacheTask *slowTask = [self existingSlowQueueTaskFor:url
-              requestHeaders:requestHeaders];
-        SGCacheTask *fastTask = [self existingFastQueueTaskFor:url
-              requestHeaders:requestHeaders];
+        SGCacheTask *slowTask = [self existingSlowQueueTaskFor:cacheKey];
+        SGCacheTask *fastTask = [self existingFastQueueTaskFor:cacheKey];
 
         if (slowTask.isExecuting) { // reuse an executing slow task
             [slowTask addCompletion:completion];
@@ -113,7 +127,8 @@ void backgroundDo(void(^block)()) {
             [fastTask addCompletions:slowTask.completions];
             [slowTask cancel];
         } else { // add a fresh task to fast queue
-            SGCacheTask *task = [self taskForURL:url requestHeaders:requestHeaders attempt:1];
+            SGCacheTask *task = [self taskForURL:url requestHeaders:headers cacheKey:cacheKey
+                  attempt:1];
             [task addCompletion:completion];
             [self.cache.fastQueue addOperation:task];
         }
@@ -121,16 +136,14 @@ void backgroundDo(void(^block)()) {
 }
 
 + (void)slowGetFileForURL:(NSString *)url requestHeaders:(NSDictionary *)requestHeaders
-      thenDo:(SGCacheFetchCompletion)completion {
+      cacheKey:(NSString *)cacheKey thenDo:(SGCacheFetchCompletion)completion {
     if (![url isKindOfClass:NSString.class] || !url.length) {
         return;
     }
 
     backgroundDo(^{
-        SGCacheTask *slowTask = [self existingSlowQueueTaskFor:url
-              requestHeaders:requestHeaders];
-        SGCacheTask *fastTask = [self existingFastQueueTaskFor:url
-              requestHeaders:requestHeaders];
+        SGCacheTask *slowTask = [self existingSlowQueueTaskFor:cacheKey];
+        SGCacheTask *fastTask = [self existingFastQueueTaskFor:cacheKey];
 
         if (fastTask && !slowTask.isExecuting) { // reuse existing fast task
             [fastTask addCompletion:completion];
@@ -141,7 +154,8 @@ void backgroundDo(void(^block)()) {
             [slowTask addCompletions:fastTask.completions];
             [fastTask cancel];
         } else { // add a fresh task to slow queue
-            SGCacheTask *task = [self taskForURL:url requestHeaders:requestHeaders attempt:1];
+            SGCacheTask *task = [self taskForURL:url requestHeaders:requestHeaders cacheKey:cacheKey
+                  attempt:1];
             [task addCompletion:completion];
             [self.cache.slowQueue addOperation:task];
         }
@@ -152,24 +166,26 @@ void backgroundDo(void(^block)()) {
     [self moveTaskToSlowQueueForURL:url requestHeaders:nil];
 }
 
-+ (void)moveTaskToSlowQueueForURL:(NSString *)url requestHeaders:(NSDictionary *)requestHeaders {
-    if (![url isKindOfClass:NSString.class] || !url.length) {
++ (void)moveTaskToSlowQueueForURL:(NSString *)url requestHeaders:(NSDictionary *)headers {
+    [self moveTaskToSlowQueueForCacheKey:[self.cache cacheKeyFor:url requestHeaders:headers]];
+}
+
++ (void)moveTaskToSlowQueueForCacheKey:(NSString *)cacheKey {
+    if (![cacheKey isKindOfClass:NSString.class] || !cacheKey.length) {
         return;
     }
 
     backgroundDo(^{
-        SGCacheTask *fastTask = [self existingFastQueueTaskFor:url
-              requestHeaders:requestHeaders];
+        SGCacheTask *fastTask = [self existingFastQueueTaskFor:cacheKey];
 
         if (fastTask) {
-            SGCacheTask *slowTask = [self existingSlowQueueTaskFor:url
-                  requestHeaders:requestHeaders];
+            SGCacheTask *slowTask = [self existingSlowQueueTaskFor:cacheKey];
 
             if (slowTask) { // reuse an executing slow task
                 [slowTask addCompletions:fastTask.completions];
             } else { // add a fresh task to slow queue
-                SGCacheTask *task = [self taskForURL:url requestHeaders:requestHeaders
-                      attempt:1];
+                SGCacheTask *task = [self taskForURL:fastTask.url
+                      requestHeaders:fastTask.requestHeaders cacheKey:cacheKey attempt:1];
                 [task addCompletions:fastTask.completions];
                 [self.cache.slowQueue addOperation:task];
             }
@@ -210,15 +226,16 @@ void backgroundDo(void(^block)()) {
     });
 }
 
-+ (void)addData:(NSData *)data forURL:(NSString *)url requestHeaders:(NSDictionary *)headers {
-    [data writeToFile:[self.cache pathForURL:url requestHeaders:headers] atomically:YES];
++ (void)addData:(NSData *)data forCacheKey:(NSString *)cacheKey {
+    [data writeToFile:[self.cache pathForCacheKey:cacheKey] atomically:YES];
 }
 
 #pragma mark - Task Factory
 
 + (SGCacheTask *)taskForURL:(NSString *)url requestHeaders:(NSDictionary *)requestHeaders
-      attempt:(int)attempt {
-    SGCacheTask *task = [SGCacheTask taskForURL:url requestHeaders:requestHeaders attempt:attempt];
+      cacheKey:(NSString *)cacheKey attempt:(int)attempt {
+    SGCacheTask *task = [SGCacheTask taskForURL:url requestHeaders:requestHeaders cacheKey:cacheKey
+          attempt:attempt];
     __weak SGCacheTask *wTask = task;
     task.completionBlock = ^{
         if (!wTask.succeeded) {
@@ -230,18 +247,18 @@ void backgroundDo(void(^block)()) {
 
 #pragma mark - Task Finders
 
-+ (SGCacheTask *)existingSlowQueueTaskFor:(NSString *)url requestHeaders:(NSDictionary *)headers {
++ (SGCacheTask *)existingSlowQueueTaskFor:(NSString *)cacheKey {
     for (SGCacheTask *task in self.cache.slowQueue.operations) {
-        if ([task matchesURL:url requestHeaders:headers]) {
+        if ([task matchesCacheKey:cacheKey]) {
             return task;
         }
     }
     return nil;
 }
 
-+ (SGCacheTask *)existingFastQueueTaskFor:(NSString *)url requestHeaders:(NSDictionary *)headers {
++ (SGCacheTask *)existingFastQueueTaskFor:(NSString *)cacheKey {
     for (SGCacheTask *task in self.cache.fastQueue.operations) {
-        if ([task matchesURL:url requestHeaders:headers]) {
+        if ([task matchesCacheKey:cacheKey]) {
             return task;
         }
     }
@@ -262,7 +279,7 @@ void backgroundDo(void(^block)()) {
 
     // make and add a retry task
     SGCacheTask *retryTask = [self taskForURL:task.url requestHeaders:task.requestHeaders
-          attempt:task.attempt + 1];
+          cacheKey:nil attempt:task.attempt + 1];
     [retryTask addCompletions:task.completions];
     [self.cache.fastQueue addOperation:retryTask];
 }
@@ -298,13 +315,16 @@ void backgroundDo(void(^block)()) {
     return hash;
 }
 
-- (NSString *)pathForURL:(NSString *)url requestHeaders:(NSDictionary *)requestHeaders {
-    if (requestHeaders) {
-        return [NSString stringWithFormat:@"%@/%@%@", self.cachePath, @(url.hash),
-                                          [self hashForDictionary:requestHeaders]];
-    } else {
-        return [NSString stringWithFormat:@"%@/%@", self.cachePath, @(url.hash)];
-    }
+- (NSString *)pathForCacheKey:(NSString *)cacheKey {
+    return [NSString stringWithFormat:@"%@/%@", self.cachePath, @(cacheKey.hash)];
+}
+
+- (NSString *)pathForURL:(NSString *)url requestHeaders:(NSDictionary *)headers {
+    return [self pathForCacheKey:[self cacheKeyFor:url requestHeaders:headers]];
+}
+
+- (NSString *)cacheKeyFor:(NSString *)url requestHeaders:(NSDictionary *)headers {
+    return [NSString stringWithFormat:@"%@%@", @(url.hash), [self hashForDictionary:headers]];
 }
 
 - (NSOperationQueue *)fastQueue {

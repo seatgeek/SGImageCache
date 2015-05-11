@@ -21,11 +21,13 @@ void backgroundDo(void(^block)());
 + (SGCache *)cache;
 
 - (NSString *)makeCachePath;
-- (NSString *)pathForURL:(NSString *)url requestHeaders:(NSDictionary *)requestHeaders;
+- (NSString *)pathForCacheKey:(NSString *)cacheKey;
+- (NSString *)pathForURL:(NSString *)url requestHeaders:(NSDictionary *)headers;
+- (NSString *)cacheKeyFor:(NSString *)url requestHeaders:(NSDictionary *)headers;
 
-+ (SGCacheTask *)existingFastQueueTaskFor:(NSString *)url requestHeaders:(NSDictionary *)headers;
-+ (SGCacheTask *)existingSlowQueueTaskFor:(NSString *)url requestHeaders:(NSDictionary *)headers;
-+ (void)addData:(NSData *)data forURL:(NSString *)url requestHeaders:(NSDictionary *)headers;
++ (SGCacheTask *)existingSlowQueueTaskFor:(NSString *)cacheKey;
++ (SGCacheTask *)existingFastQueueTaskFor:(NSString *)cacheKey;
++ (void)addData:(NSData *)data forCacheKey:(NSString *)cacheKey;
 + (void)taskFailed:(SGCacheTask *)task;
 
 @end

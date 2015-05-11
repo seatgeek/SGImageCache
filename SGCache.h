@@ -66,8 +66,33 @@ Returns a PromiseKit promise that resolves with an NSData.
 NSString *url = @"http://example.com/image.jpg";
 NSDictionary *requestHeaders = @{@"Authorization" : @"abcd1234"};
 
+- If the URL is not already queued a new file fetch task will be added to
+<fastQueue>.
+- If the URL is already in <fastQueue> the promise will resolve when the
+existing task completes.
+- If the URL is already in <slowQueue> it will be moved to <fastQueue> and
+the promise will resolve when the existing task completes.
 */
-+ (PMKPromise *)getFileForURL:(NSString *)url requestHeaders:(NSDictionary *)requestHeaders;
++ (PMKPromise *)getFileForURL:(NSString *)url requestHeaders:(NSDictionary *)headers;
+
+/**
+Fetch a file from cache if available, or remote it not, sending HTTP headers
+with the request and providing an explicit cache key. Returns a PromiseKit
+promise that resolves with an NSData.
+
+NSString *url = @"http://example.com/image.jpg";
+NSDictionary *requestHeaders = @{@"Authorization" : @"abcd1234"};
+NSStrig *cacheKey = [NSString stringWithFormat:@"%@%@", username, url];
+
+- If the URL is not already queued a new file fetch task will be added to
+<fastQueue>.
+- If the URL is already in <fastQueue> the promise will resolve when the
+existing task completes.
+- If the URL is already in <slowQueue> it will be moved to <fastQueue> and
+the promise will resolve when the existing task completes.
+*/
++ (PMKPromise *)getFileForURL:(NSString *)url requestHeaders:(NSDictionary *)headers
+      cacheKey:(NSString *)cacheKey;
 
 /**
 Fetch a file from cache if available, or remote it not.
@@ -89,12 +114,34 @@ resolve when the existing task completes.
 
 /**
 Fetch a file from cache if available, or remote it not, sending HTTP headers
-with the request.
-Returns a PromiseKit promise that resolves with an NSData.
+with the request. Returns a PromiseKit promise that resolves with an NSData.
 
 NSString *url = @"http://example.com/image.jpg";
-NSDictionary *requestHeaders = @{@"Authorization" : @"abcd1234"}; */
-+ (PMKPromise *)slowGetFileForURL:(NSString *)url requestHeaders:(NSDictionary *)requestHeaders;
+NSDictionary *requestHeaders = @{@"Authorization" : @"abcd1234"};
+
+- If the URL is not already queued a new file fetch task will be added to
+<slowQueue>.
+- If the URL is already in either <slowQueue> or <fastQueue> the promise will
+resolve when the existing task completes.
+*/
++ (PMKPromise *)slowGetFileForURL:(NSString *)url requestHeaders:(NSDictionary *)headers;
+
+/**
+Fetch a file from cache if available, or remote it not, sending HTTP headers
+with the request and providing an explicit cache key. Returns a PromiseKit
+promise that resolves with an NSData.
+
+NSString *url = @"http://example.com/image.jpg";
+NSDictionary *requestHeaders = @{@"Authorization" : @"abcd1234"};
+NSStrig *cacheKey = [NSString stringWithFormat:@"%@%@", username, url];
+
+- If the URL is not already queued a new file fetch task will be added to
+<slowQueue>.
+- If the URL is already in either <slowQueue> or <fastQueue> the promise will
+resolve when the existing task completes.
+*/
++ (PMKPromise *)slowGetFileForURL:(NSString *)url requestHeaders:(NSDictionary *)headers
+      cacheKey:(NSString *)cacheKey;
 
 /**
 * Move an image fetch task from <fastQueue> to <slowQueue>.
@@ -102,9 +149,15 @@ NSDictionary *requestHeaders = @{@"Authorization" : @"abcd1234"}; */
 + (void)moveTaskToSlowQueueForURL:(NSString *)url;
 
 /**
-* Move an image fetch task using http request headers from <fastQueue> to <slowQueue>.
+* Move an image fetch task identified by URL and HTTP request headers from
+* <fastQueue> to <slowQueue>.
 */
-+ (void)moveTaskToSlowQueueForURL:(NSString *)url requestHeaders:(NSDictionary *)requestHeaders;
++ (void)moveTaskToSlowQueueForURL:(NSString *)url requestHeaders:(NSDictionary *)headers;
+
+/**
+* Move an image fetch task identified by cache key from <fastQueue> to <slowQueue>.
+*/
++ (void)moveTaskToSlowQueueForCacheKey:(NSString *)cacheKey;
 
 #pragma mark - House Keeping
 
@@ -145,7 +198,12 @@ NSDictionary *requestHeaders = @{@"Authorization" : @"abcd1234"}; */
 /**
 * Returns YES if the file with matching URL and HTTP headers is found in the cache.
 */
-+ (BOOL)haveFileForURL:(NSString *)url requestHeaders:(NSDictionary *)requestHeaders;
++ (BOOL)haveFileForURL:(NSString *)url requestHeaders:(NSDictionary *)headers;
+
+/**
+* Returns YES if the file is found in the cache.
+*/
++ (BOOL)haveFileForCacheKey:(NSString *)cacheKey;
 
 /**
 * Retrieves a file from cache. Returns nil if the file is not found in
@@ -158,7 +216,7 @@ NSDictionary *requestHeaders = @{@"Authorization" : @"abcd1234"}; */
 + (NSData *)fileForURL:(NSString *)url;
 
 /**
-* Retrieves a file with matching URL and HTTP headers is found in the cache.
+* Retrieves a file with matching URL and HTTP headers if found in the cache.
 * Returns nil if the file is not found in the cache.
 *
 * @warning If you want a single method which will return a file from either
@@ -167,6 +225,17 @@ NSDictionary *requestHeaders = @{@"Authorization" : @"abcd1234"}; */
 */
 
 + (NSData *)fileForURL:(NSString *)url requestHeaders:(NSDictionary *)headers;
+
+/**
+* Retrieves a file with matching cache key if found in the cache.
+* Returns nil if the file is not found in the cache.
+*
+* @warning If you want a single method which will return a file from either
+* cache or remote, use
+* [getFileForURL:](<+[SGCache getFileForURL:]>) instead.
+*/
+
++ (NSData *)fileForCacheKey:(NSString *)cacheKey;
 
 #pragma - mark - Logging
 

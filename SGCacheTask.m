@@ -24,11 +24,12 @@
 }
 
 + (instancetype)taskForURL:(NSString *)url requestHeaders:(NSDictionary *)headers
-      attempt:(int)attempt {
+      cacheKey:(NSString *)cacheKey attempt:(int)attempt {
     SGCacheTask *task = self.new;
     task.attempt = attempt;
     task.url = url;
     task.requestHeaders = headers;
+    task.cacheKey = cacheKey;
     return task;
 }
 
@@ -99,7 +100,7 @@
 }
 
 - (void)completedWithFile:(NSData *)data {
-    [SGCache addData:data forURL:self.url requestHeaders:self.requestHeaders];
+    [SGCache addData:data forCacheKey:self.cacheKey];
 
     // call the completion blocks on the main thread
     dispatch_async(dispatch_get_main_queue(), ^{
@@ -127,18 +128,8 @@
 
 #pragma mark - Equivalence
 
-- (BOOL)matchesURL:(NSString *)url requestHeaders:(NSDictionary *)requestHeaders {
-    if (![url isEqualToString:self.url]) {
-        return NO;
-    }
-    if (!self.requestHeaders && !requestHeaders) {
-        return YES;
-    }
-    return [self.requestHeaders isEqualToDictionary:requestHeaders];
-}
-
-- (BOOL)isEqualToTask:(SGCacheTask *)task {
-    return [self matchesURL:task.url requestHeaders:task.requestHeaders];
+- (BOOL)matchesCacheKey:(NSString *)cacheKey {
+    return [cacheKey isEqualToString:self.cacheKey];
 }
 
 #pragma mark - Setters

@@ -33,14 +33,15 @@
 #pragma mark - Public API
 
 + (BOOL)haveImageForURL:(NSString *)url {
-    return [self haveImageForURL:url requestHeaders:nil];
+    return [self haveFileForURL:url];
 }
 
-+ (BOOL)haveImageForURL:(NSString *)url requestHeaders:(NSDictionary *)requestHeaders {
-    if (![url isKindOfClass:NSString.class]) {
-        return NO;
-    }
-    return [NSFileManager.defaultManager fileExistsAtPath:[self.cache pathForURL:url requestHeaders:requestHeaders]];
++ (BOOL)haveImageForURL:(NSString *)url requestHeaders:(NSDictionary *)headers {
+    return [self haveFileForURL:url requestHeaders:headers];
+}
+
++ (BOOL)haveImageForCacheKey:(NSString *)cacheKey {
+    return [self haveFileForCacheKey:cacheKey];
 }
 
 + (UIImage *)imageForURL:(NSString *)url {
@@ -48,27 +49,31 @@
 }
 
 + (UIImage *)imageForURL:(NSString *)url requestHeaders:(NSDictionary *)headers {
-    UIImage *image = [self.globalMemCache objectForKey:url];
+    id cacheKey = [self.cache cacheKeyFor:url requestHeaders:headers];
+    return [self imageForCacheKey:cacheKey];
+}
+
++ (UIImage *)imageForCacheKey:(NSString *)cacheKey {
+    UIImage *image = [self.globalMemCache objectForKey:cacheKey];
     if (image) {
         return image;
     }
 
-    NSData *data = [NSData dataWithContentsOfFile:[self.cache pathForURL:url requestHeaders:headers]];
+    NSData *data = [NSData dataWithContentsOfFile:[self.cache pathForCacheKey:cacheKey]];
     image = [UIImage imageWithData:data];
     if (!image) {
         return nil;
     }
 
     // quickly guess rough byte size of the image
-    int height = image.size.height,
-    width = image.size.width;
+    int height = image.size.height, width = image.size.width;
     int bytesPerRow = 4 * width;
     if (bytesPerRow % 16) {
         bytesPerRow = ((bytesPerRow / 16) + 1) * 16;
     }
 
     NSUInteger imageCost = height * bytesPerRow;
-    [self.globalMemCache setObject:image forKey:url cost:imageCost];
+    [self.globalMemCache setObject:image forKey:cacheKey cost:imageCost];
 
     return image;
 }
@@ -102,9 +107,15 @@
     return [self getImageForURL:url requestHeaders:nil];
 }
 
-+ (PMKPromise *)getImageForURL:(NSString *)url requestHeaders:(NSDictionary *)requestHeaders {
++ (PMKPromise *)getImageForURL:(NSString *)url requestHeaders:(NSDictionary *)headers {
+    id cacheKey = [self.cache cacheKeyFor:url requestHeaders:headers];
+    return [self getImageForURL:url requestHeaders:headers cacheKey:cacheKey];
+}
+
++ (PMKPromise *)getImageForURL:(NSString *)url requestHeaders:(NSDictionary *)headers
+      cacheKey:(NSString *)cacheKey {
     return [PMKPromise new:^(PMKPromiseFulfiller fulfill, PMKPromiseRejecter reject) {
-        [self getImageForURL:url requestHeaders:requestHeaders thenDo:^(UIImage *image) {
+        [self getImageForURL:url requestHeaders:headers cacheKey:cacheKey thenDo:^(UIImage *image) {
             fulfill(image);
         }];
     }];
@@ -114,23 +125,30 @@
     return [self slowGetImageForURL:url requestHeaders:nil];
 }
 
-+ (PMKPromise *)slowGetImageForURL:(NSString *)url requestHeaders:(NSDictionary *)requestHeaders {
++ (PMKPromise *)slowGetImageForURL:(NSString *)url requestHeaders:(NSDictionary *)headers {
+    id cacheKey = [self.cache cacheKeyFor:url requestHeaders:headers];
+    return [self slowGetImageForURL:url requestHeaders:headers cacheKey:cacheKey];
+}
+
++ (PMKPromise *)slowGetImageForURL:(NSString *)url requestHeaders:(NSDictionary *)headers
+      cacheKey:(NSString *)cacheKey {
     return [PMKPromise new:^(PMKPromiseFulfiller fulfill, PMKPromiseRejecter reject) {
-        [self slowGetImageForURL:url requestHeaders:requestHeaders thenDo:^(UIImage *image) {
-            fulfill(image);
-        }];
+        [self slowGetImageForURL:url requestHeaders:headers cacheKey:cacheKey
+              thenDo:^(UIImage *image) {
+                  fulfill(image);
+              }];
     }];
 }
 
 + (void)getImageForURL:(NSString *)url requestHeaders:(NSDictionary *)headers
-      thenDo:(SGCacheFetchCompletion)completion {
+      cacheKey:(NSString *)cacheKey thenDo:(SGCacheFetchCompletion)completion {
     if (![url isKindOfClass:NSString.class] || !url.length) {
         return;
     }
 
     backgroundDo(^{
-        SGImageCacheTask *slowTask = (id)[self existingSlowQueueTaskFor:url requestHeaders:headers];
-        SGImageCacheTask *fastTask = (id)[self existingFastQueueTaskFor:url requestHeaders:headers];
+        SGImageCacheTask *slowTask = (id)[self existingSlowQueueTaskFor:cacheKey];
+        SGImageCacheTask *fastTask = (id)[self existingFastQueueTaskFor:cacheKey];
 
         if (slowTask.isExecuting) { // reuse an executing slow task
             [slowTask addCompletion:completion];
@@ -142,7 +160,8 @@
             [fastTask addCompletions:slowTask.completions];
             [slowTask cancel];
         } else { // add a fresh task to fast queue
-            SGImageCacheTask *task = (id)[self taskForURL:url requestHeaders:headers attempt:1];
+            SGImageCacheTask *task = (id)[self taskForURL:url requestHeaders:headers
+                  cacheKey:cacheKey attempt:1];
             [task addCompletion:completion];
             task.forceDecompress = YES;
             [self.cache.fastQueue addOperation:task];
@@ -151,14 +170,14 @@
 }
 
 + (void)slowGetImageForURL:(NSString *)url requestHeaders:(NSDictionary *)headers
-      thenDo:(SGCacheFetchCompletion)completion {
+      cacheKey:(NSString *)cacheKey thenDo:(SGCacheFetchCompletion)completion {
     if (![url isKindOfClass:NSString.class] || !url.length) {
         return;
     }
 
     backgroundDo(^{
-        SGImageCacheTask *slowTask = (id)[self existingSlowQueueTaskFor:url requestHeaders:headers];
-        SGImageCacheTask *fastTask = (id)[self existingFastQueueTaskFor:url requestHeaders:headers];
+        SGImageCacheTask *slowTask = (id)[self existingSlowQueueTaskFor:cacheKey];
+        SGImageCacheTask *fastTask = (id)[self existingFastQueueTaskFor:cacheKey];
 
         if (fastTask && !slowTask.isExecuting) { // reuse existing fast task
             [fastTask addCompletion:completion];
@@ -169,7 +188,8 @@
             [slowTask addCompletions:fastTask.completions];
             [fastTask cancel];
         } else { // add a fresh task to slow queue
-            SGImageCacheTask *task = (id)[self taskForURL:url requestHeaders:headers attempt:1];
+            SGImageCacheTask *task = (id)[self taskForURL:url requestHeaders:headers
+                  cacheKey:cacheKey attempt:1];
             [task addCompletion:completion];
             [self.cache.slowQueue addOperation:task];
         }
@@ -182,9 +202,9 @@
 
 #pragma mark - Task Factory
 
-+ (SGImageCacheTask *)taskForURL:(NSString *)url requestHeaders:(NSDictionary *)headers
-      attempt:(int)attempt {
-    SGImageCacheTask *task = [SGImageCacheTask taskForURL:url requestHeaders:headers
++ (SGCacheTask *)taskForURL:(NSString *)url requestHeaders:(NSDictionary *)headers
+      cacheKey:(NSString *)cacheKey attempt:(int)attempt {
+    SGImageCacheTask *task = [SGImageCacheTask taskForURL:url requestHeaders:headers cacheKey:nil
           attempt:attempt];
     __weak SGImageCacheTask *wTask = task;
     task.completionBlock = ^{

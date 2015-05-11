@@ -8,15 +8,16 @@
 
 @property (nonatomic, copy) NSString *url;
 @property (nonatomic, copy) NSDictionary *requestHeaders;
+@property (nonatomic, copy) NSString *cacheKey;
 @property (nonatomic, assign) BOOL succeeded;
 @property (nonatomic, assign) int attempt;
 
-+ (instancetype)taskForURL:(NSString *)url requestHeaders:(NSDictionary *)headers attempt:(int)attempt;
++ (instancetype)taskForURL:(NSString *)url requestHeaders:(NSDictionary *)headers
+      cacheKey:(NSString *)cacheKey attempt:(int)attempt;
 
 - (NSArray *)completions;
 - (void)addCompletion:(SGCacheFetchCompletion)completion;
 - (void)addCompletions:(NSArray *)completions;
-- (BOOL)isEqualToTask:(SGCacheTask *)task;
-- (BOOL)matchesURL:(NSString *)url requestHeaders:(NSDictionary *)requestHeaders;
+- (BOOL)matchesCacheKey:(NSString *)cacheKey;
 
 @end

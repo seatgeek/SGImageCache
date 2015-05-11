@@ -13,7 +13,7 @@
     UIImage *image = [UIImage imageWithData:data];
 
     if (image) {
-        [SGImageCache addData:data forURL:self.url requestHeaders:self.requestHeaders];
+        [SGImageCache addData:data forCacheKey:self.cacheKey];
     } else {
         [self finish];
         return;
