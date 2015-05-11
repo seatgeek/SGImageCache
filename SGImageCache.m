@@ -204,7 +204,7 @@
 
 + (SGCacheTask *)taskForURL:(NSString *)url requestHeaders:(NSDictionary *)headers
       cacheKey:(NSString *)cacheKey attempt:(int)attempt {
-    SGImageCacheTask *task = [SGImageCacheTask taskForURL:url requestHeaders:headers cacheKey:nil
+    SGImageCacheTask *task = [SGImageCacheTask taskForURL:url requestHeaders:headers cacheKey:cacheKey
           attempt:attempt];
     __weak SGImageCacheTask *wTask = task;
     task.completionBlock = ^{
