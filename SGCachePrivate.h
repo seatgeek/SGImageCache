@@ -27,7 +27,6 @@ void backgroundDo(void(^block)());
 
 + (SGCacheTask *)existingSlowQueueTaskFor:(NSString *)cacheKey;
 + (SGCacheTask *)existingFastQueueTaskFor:(NSString *)cacheKey;
-+ (void)addData:(NSData *)data forCacheKey:(NSString *)cacheKey;
 + (void)taskFailed:(SGCacheTask *)task;
 
 @end
