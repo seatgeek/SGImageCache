@@ -1,3 +1,10 @@
+## 2.1.0
+
+- Added SGCache, a generic NSData cacher
+- Added the ability to use custom HTTP headers
+- Allow providing custom cache keys
+- Added the ability to force a remote fetch
+  
 ## 2.0.1
 
 - Allow SGImageCache to work with projects using Alamofire and use_frameworks!

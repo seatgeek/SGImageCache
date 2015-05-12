@@ -12,11 +12,11 @@ pod 'SGImageCache'
 
 ```objc
 // Objective-C
-[SGImageCache getImageForURL:url thenDo:^(UIImage *image) {
+[SGImageCache getImageForURL:url].then(^(UIImage *image) {
     if (image) {
         self.imageView.image = image;
     }
-}];
+});
 ```
 
 ```swift
@@ -26,6 +26,12 @@ SGImageCache.getImageForURL(url) { image in
         self.imageView.image = image
     }
 }
+SGImageCache.getImageForURL(url).swiftThen({object in
+    if let image = object as? UIImage {
+        self.imageView.image = image
+    }
+    return nil
+})
 
 ```
 
@@ -36,12 +42,12 @@ from memory, disk, or remote) is performed off the main thread.
 
 ```objc
 // Objective-C
-[SGImageCache slowGetImageForURL:url thenDo:nil];
+[SGImageCache slowGetImageForURL:url];
 ```
 
 ```swift
 // Swift
-SGImageCache.slowGetImageForURL(url, thenDo: nil)
+SGImageCache.slowGetImageForURL(url)
 ```
 
 This will add the fetch request to `slowQueue` (a serial queue). All image fetching (either
