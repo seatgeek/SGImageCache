@@ -4,7 +4,7 @@
 
 #import "UIImageView+SGImageCache.h"
 #import "SGImageCache.h"
-#import "MGEvents.h"
+#import <MGEvents/MGEvents.h>
 #import <objc/runtime.h>
 
 @interface UIImageView (SGImageCache_Private)
