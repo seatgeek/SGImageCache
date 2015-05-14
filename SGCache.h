@@ -3,9 +3,7 @@
 //
 
 #import <UIKit/UIKit.h>
-#import <PromiseKit/PromiseKit.h>
-
-typedef void(^SGCacheFetchCompletion)(id obj);
+#import "SGCachePromise.h"
 
 typedef NS_OPTIONS(NSInteger, SGImageCacheLogging) {SGImageCacheLogNothing = 0,
     SGImageCacheLogRequests = 1 << 0,
@@ -56,7 +54,7 @@ existing task completes.
 - If the URL is already in <slowQueue> it will be moved to <fastQueue> and
 the promise will resolve when the existing task completes.
 */
-+ (PMKPromise *)getFileForURL:(NSString *)url;
++ (SGCachePromise *)getFileForURL:(NSString *)url;
 
 /**
 Fetch a file from cache if available, or remote it not, sending HTTP headers
@@ -73,7 +71,7 @@ existing task completes.
 - If the URL is already in <slowQueue> it will be moved to <fastQueue> and
 the promise will resolve when the existing task completes.
 */
-+ (PMKPromise *)getFileForURL:(NSString *)url requestHeaders:(NSDictionary *)headers;
++ (SGCachePromise *)getFileForURL:(NSString *)url requestHeaders:(NSDictionary *)headers;
 
 /**
 Fetch a file from cache if available, or remote it not, sending HTTP headers
@@ -91,7 +89,7 @@ existing task completes.
 - If the URL is already in <slowQueue> it will be moved to <fastQueue> and
 the promise will resolve when the existing task completes.
 */
-+ (PMKPromise *)getFileForURL:(NSString *)url requestHeaders:(NSDictionary *)headers
++ (SGCachePromise *)getFileForURL:(NSString *)url requestHeaders:(NSDictionary *)headers
       cacheKey:(NSString *)cacheKey;
 
 
@@ -113,7 +111,7 @@ the promise will resolve when the existing task completes.
  - If the URL is already in <slowQueue> it will be moved to <fastQueue> and
  the promise will resolve when the existing task completes.
  */
-+ (PMKPromise *)getRemoteFileForURL:(NSString *)url;
++ (SGCachePromise *)getRemoteFileForURL:(NSString *)url;
 
 
 /**
@@ -130,7 +128,7 @@ the promise will resolve when the existing task completes.
  - If the URL is already in <slowQueue> it will be moved to <fastQueue> and
  the promise will resolve when the existing task completes.
  */
-+ (PMKPromise *)getRemoteFileForURL:(NSString *)url requestHeaders:(NSDictionary *)headers;
++ (SGCachePromise *)getRemoteFileForURL:(NSString *)url requestHeaders:(NSDictionary *)headers;
 
 
 /**
@@ -149,7 +147,7 @@ the promise will resolve when the existing task completes.
  - If the URL is already in <slowQueue> it will be moved to <fastQueue> and
  the promise will resolve when the existing task completes.
  */
-+ (PMKPromise *)getRemoteFileForURL:(NSString *)url requestHeaders:(NSDictionary *)headers
++ (SGCachePromise *)getRemoteFileForURL:(NSString *)url requestHeaders:(NSDictionary *)headers
                            cacheKey:(NSString *)cacheKey;
 
 /**
@@ -168,7 +166,7 @@ __weak typeof(self) me = self;
 - If the URL is already in either <slowQueue> or <fastQueue> the promise will
 resolve when the existing task completes.
 */
-+ (PMKPromise *)slowGetFileForURL:(NSString *)url;
++ (SGCachePromise *)slowGetFileForURL:(NSString *)url;
 
 /**
 Fetch a file from cache if available, or remote it not, sending HTTP headers
@@ -182,7 +180,7 @@ NSDictionary *requestHeaders = @{@"Authorization" : @"abcd1234"};
 - If the URL is already in either <slowQueue> or <fastQueue> the promise will
 resolve when the existing task completes.
 */
-+ (PMKPromise *)slowGetFileForURL:(NSString *)url requestHeaders:(NSDictionary *)headers;
++ (SGCachePromise *)slowGetFileForURL:(NSString *)url requestHeaders:(NSDictionary *)headers;
 
 /**
 Fetch a file from cache if available, or remote it not, sending HTTP headers
@@ -198,7 +196,7 @@ NSStrig *cacheKey = [NSString stringWithFormat:@"%@%@", username, url];
 - If the URL is already in either <slowQueue> or <fastQueue> the promise will
 resolve when the existing task completes.
 */
-+ (PMKPromise *)slowGetFileForURL:(NSString *)url requestHeaders:(NSDictionary *)headers
++ (SGCachePromise *)slowGetFileForURL:(NSString *)url requestHeaders:(NSDictionary *)headers
       cacheKey:(NSString *)cacheKey;
 
 /**

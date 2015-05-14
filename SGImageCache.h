@@ -42,7 +42,7 @@ Returns a PromiseKit promise that resolves with a UIImage.
 - If the URL is already in <slowQueue> it will be moved to <fastQueue> and
   the promise will resolve when the existing task completes.
 */
-+ (PMKPromise *)getImageForURL:(NSString *)url;
++ (SGCachePromise *)getImageForURL:(NSString *)url;
 
 /**
 Fetch an image from cache if available, or remote it not, sending HTTP headers
@@ -58,7 +58,7 @@ existing task completes.
 - If the URL is already in <slowQueue> it will be moved to <fastQueue> and
 the promise will resolve when the existing task completes.
  */
-+ (PMKPromise *)getImageForURL:(NSString *)url requestHeaders:(NSDictionary *)headers;
++ (SGCachePromise *)getImageForURL:(NSString *)url requestHeaders:(NSDictionary *)headers;
 
 /**
 Fetch an image from cache if available, or remote it not, sending HTTP headers
@@ -76,7 +76,7 @@ existing task completes.
 - If the URL is already in <slowQueue> it will be moved to <fastQueue> and
 the promise will resolve when the existing task completes.
 */
-+ (PMKPromise *)getImageForURL:(NSString *)url requestHeaders:(NSDictionary *)headers
++ (SGCachePromise *)getImageForURL:(NSString *)url requestHeaders:(NSDictionary *)headers
       cacheKey:(NSString *)cacheKey;
 
 /**
@@ -97,7 +97,7 @@ the promise will resolve when the existing task completes.
  - If the URL is already in <slowQueue> it will be moved to <fastQueue> and
  the promise will resolve when the existing task completes.
  */
-+ (PMKPromise *)getRemoteImageForURL:(NSString *)url;
++ (SGCachePromise *)getRemoteImageForURL:(NSString *)url;
 
 
 /**
@@ -114,7 +114,7 @@ the promise will resolve when the existing task completes.
  - If the URL is already in <slowQueue> it will be moved to <fastQueue> and
  the promise will resolve when the existing task completes.
  */
-+ (PMKPromise *)getRemoteImageForURL:(NSString *)url requestHeaders:(NSDictionary *)headers;
++ (SGCachePromise *)getRemoteImageForURL:(NSString *)url requestHeaders:(NSDictionary *)headers;
 
 
 /**
@@ -132,7 +132,7 @@ the promise will resolve when the existing task completes.
  - If the URL is already in <slowQueue> it will be moved to <fastQueue> and
  the promise will resolve when the existing task completes.
  */
-+ (PMKPromise *)getRemoteImageForURL:(NSString *)url requestHeaders:(NSDictionary *)headers
++ (SGCachePromise *)getRemoteImageForURL:(NSString *)url requestHeaders:(NSDictionary *)headers
                       cacheKey:(NSString *)cacheKey;
 
 /**
@@ -151,7 +151,7 @@ Returns a PromiseKit promise that resolves with a UIImage.
 - If the URL is already in either <slowQueue> or <fastQueue> the promise will
   resolve when the existing task completes.
 */
-+ (PMKPromise *)slowGetImageForURL:(NSString *)url;
++ (SGCachePromise *)slowGetImageForURL:(NSString *)url;
 
 /**
 Fetch an image from cache if available, or remote it not, sending HTTP headers
@@ -165,7 +165,7 @@ with the request. Returns a PromiseKit promise that resolves with a UIImage.
 - If the URL is already in either <slowQueue> or <fastQueue> the promise will
 resolve when the existing task completes.
 */
-+ (PMKPromise *)slowGetImageForURL:(NSString *)url requestHeaders:(NSDictionary *)headers;
++ (SGCachePromise *)slowGetImageForURL:(NSString *)url requestHeaders:(NSDictionary *)headers;
 
 /**
 Fetch an image from cache if available, or remote it not, sending HTTP headers
@@ -181,7 +181,7 @@ promise that resolves with a UIImage.
 - If the URL is already in either <slowQueue> or <fastQueue> the promise will
 resolve when the existing task completes.
 */
-+ (PMKPromise *)slowGetImageForURL:(NSString *)url requestHeaders:(NSDictionary *)headers
++ (SGCachePromise *)slowGetImageForURL:(NSString *)url requestHeaders:(NSDictionary *)headers
       cacheKey:(NSString *)cacheKey;
 
 #pragma mark - House Keeping

@@ -29,6 +29,10 @@ void backgroundDo(void(^block)());
 + (SGCacheTask *)existingFastQueueTaskFor:(NSString *)cacheKey;
 + (void)taskFailed:(SGCacheTask *)task;
 
++ (SGCacheTask *)taskForPromise:(SGCachePromise *)promise;
++ (void)addRetryForPromise:(SGCachePromise *)promise retryBlock:(SGCacheFetchOnRetry)retry;
++ (void)addFailForPromise:(SGCachePromise *)promise failBlock:(SGCacheFetchFail)failBlock;
+
 @end
 
 #endif

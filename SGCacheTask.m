@@ -7,6 +7,7 @@
 #import "AFURLConnectionOperation.h"
 #import "AFURLResponseSerialization.h"
 #import "SGCachePrivate.h"
+#import "SGCachePromise.h"
 
 @interface SGCacheTask ()
 @property (nonatomic, strong) SGHTTPRequest *request;
@@ -14,12 +15,16 @@
 
 @implementation SGCacheTask {
     BOOL _isExecuting, _isFinished;
-    NSMutableArray *_completions;
+    NSMutableOrderedSet *_completions;
+    NSMutableOrderedSet *_failBlocks;
+    NSMutableOrderedSet *_retryBlocks;
 }
 
 - (id)init {
     self = [super init];
-    _completions = @[].mutableCopy;
+    _completions = NSMutableOrderedSet.new;
+    _failBlocks = NSMutableOrderedSet.new;
+    _retryBlocks = NSMutableOrderedSet.new;
     return self;
 }
 
@@ -41,10 +46,42 @@
     }
 }
 
-- (void)addCompletions:(NSArray *)completions {
+- (void)addCompletions:(NSMutableOrderedSet *)completions {
     if (completions.count) {
         @synchronized (self) {
-            [_completions addObjectsFromArray:completions];
+            [_completions unionOrderedSet:completions];
+        }
+    }
+}
+
+- (void)addFailBlock:(SGCacheFetchFail)fail {
+    if (fail) {
+        @synchronized (self) {
+            [_failBlocks addObject:[fail copy]];
+        }
+    }
+}
+
+- (void)addFailBlocks:(NSMutableOrderedSet *)fails {
+    if (fails.count) {
+        @synchronized (self) {
+            [_failBlocks unionOrderedSet:fails];
+        }
+    }
+}
+
+- (void)addRetryBlock:(SGCacheFetchOnRetry)retry {
+    if (retry) {
+        @synchronized (self) {
+            [_retryBlocks addObject:[retry copy]];
+        }
+    }
+}
+
+- (void)addRetryBlocks:(NSMutableOrderedSet *)retries {
+    if (retries.count) {
+        @synchronized (self) {
+            [_retryBlocks unionOrderedSet:retries];
         }
     }
 }
@@ -87,14 +124,17 @@
         });
     };
     self.request.onNetworkReachable = ^{
+        [me willRetry];
         [me fetchRemoteFile];
     };
     self.request.onFailure = ^(SGHTTPRequest *req) {
         id info = req.error.userInfo;
         NSInteger code = [info[AFNetworkingOperationFailingURLResponseErrorKey] statusCode];
-        if (code == 404) { // give up on 404
-            [me completedWithFile:nil];
-        } //else let it fall through to a retry
+        if (code >= 400 && code < 408) { // give up on 4XX http errors
+            [me failedWithError:req.error allowRetry:NO];
+        } else {
+            [me failedWithError:req.error allowRetry:YES];
+        }
     };
     [self.request start];
 }
@@ -111,6 +151,29 @@
 
     self.succeeded = YES;
     [self finish];
+}
+
+- (void)failedWithError:(NSError *)error allowRetry:(BOOL)allowRetry {
+    self.succeeded = NO;
+
+    // call the completion blocks on the main thread
+    dispatch_async(dispatch_get_main_queue(), ^{
+        for (SGCacheFetchFail failBlock in self.onFailBlocks) {
+            failBlock(error, !allowRetry);
+        }
+    });
+
+    if (!allowRetry) {
+        [self finish];
+    }
+}
+
+- (void)willRetry {
+    dispatch_async(dispatch_get_main_queue(), ^{
+        for (SGCacheFetchOnRetry retryBlock in self.onRetryBlocks) {
+            retryBlock();
+        }
+    });
 }
 
 - (void)finish {
@@ -146,11 +209,33 @@
     [self didChangeValueForKey:@"isFinished"];
 }
 
+- (void)setPromise:(SGCachePromise *)promise {
+    _promise = promise;
+    if (promise.onRetry) {
+        [self addRetryBlock:promise.onRetry];
+    }
+    if (promise.onFail) {
+        [self addFailBlock:promise.onFail];
+    }
+}
+
 #pragma mark - Getters
 
 - (NSArray *)completions {
     @synchronized (self) {
         return _completions.copy;
+    }
+}
+
+- (NSArray *)onFailBlocks {
+    @synchronized (self) {
+        return _failBlocks.copy;
+    }
+}
+
+- (NSArray *)onRetryBlocks {
+    @synchronized (self) {
+        return _retryBlocks.copy;
     }
 }
 

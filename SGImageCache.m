@@ -6,6 +6,7 @@
 #import "SGImageCache.h"
 #import "SGImageCacheTask.h"
 #import "SGCachePrivate.h"
+#import "SGCachePromise.h"
 
 #define FOLDER_NAME @"SGImageCache"
 #define MAX_RETRIES 5
@@ -103,66 +104,89 @@
     return image;
 }
 
-+ (PMKPromise *)getImageForURL:(NSString *)url {
++ (SGCachePromise *)getImageForURL:(NSString *)url {
     return [self getImageForURL:url requestHeaders:nil];
 }
 
-+ (PMKPromise *)getImageForURL:(NSString *)url requestHeaders:(NSDictionary *)headers {
++ (SGCachePromise *)getImageForURL:(NSString *)url requestHeaders:(NSDictionary *)headers {
     id cacheKey = [self.cache cacheKeyFor:url requestHeaders:headers];
     return [self getImageForURL:url requestHeaders:headers cacheKey:cacheKey];
 }
 
-+ (PMKPromise *)getImageForURL:(NSString *)url requestHeaders:(NSDictionary *)headers
++ (SGCachePromise *)getImageForURL:(NSString *)url requestHeaders:(NSDictionary *)headers
       cacheKey:(NSString *)cacheKey {
-    return [PMKPromise new:^(PMKPromiseFulfiller fulfill, PMKPromiseRejecter reject) {
-        [self getImageForURL:url requestHeaders:headers cacheKey:cacheKey remoteFetchOnly:NO
-                      thenDo:^(UIImage *image) {
-            fulfill(image);
-        }];
+    __block SGCachePromise *promise = [SGCachePromise new:^(PMKPromiseFulfiller fulfill, PMKPromiseRejecter reject) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self getImageForURL:url requestHeaders:headers cacheKey:cacheKey remoteFetchOnly:NO
+                          thenDo:^(UIImage *image) {
+                              fulfill(image);
+                          } onFail:^(NSError *error, BOOL wasFatal) {
+                              if (wasFatal) {
+                                  reject(error);
+                              }
+                          } promise:promise];
+        });
     }];
+    return promise;
 }
 
-+ (PMKPromise *)getRemoteImageForURL:(NSString *)url {
++ (SGCachePromise *)getRemoteImageForURL:(NSString *)url {
     return [self getRemoteImageForURL:url requestHeaders:nil];
 }
 
-+ (PMKPromise *)getRemoteImageForURL:(NSString *)url requestHeaders:(NSDictionary *)headers {
++ (SGCachePromise *)getRemoteImageForURL:(NSString *)url requestHeaders:(NSDictionary *)headers {
     id cacheKey = [self.cache cacheKeyFor:url requestHeaders:headers];
     return [self getRemoteImageForURL:url requestHeaders:headers cacheKey:cacheKey];
 }
 
-+ (PMKPromise *)getRemoteImageForURL:(NSString *)url requestHeaders:(NSDictionary *)headers
++ (SGCachePromise *)getRemoteImageForURL:(NSString *)url requestHeaders:(NSDictionary *)headers
                             cacheKey:(NSString *)cacheKey {
-    return [PMKPromise new:^(PMKPromiseFulfiller fulfill, PMKPromiseRejecter reject) {
-        [self getImageForURL:url requestHeaders:headers cacheKey:cacheKey remoteFetchOnly:YES
-                      thenDo:^(UIImage *image) {
-                          fulfill(image);
-        }];
+    __block SGCachePromise *promise = [SGCachePromise new:^(PMKPromiseFulfiller fulfill, PMKPromiseRejecter reject) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self getImageForURL:url requestHeaders:headers cacheKey:cacheKey remoteFetchOnly:YES
+                          thenDo:^(UIImage *image) {
+                              fulfill(image);
+                          } onFail:^(NSError *error, BOOL wasFatal) {
+                              if (wasFatal) {
+                                  reject(error);
+                              }
+                          } promise:promise];
+        });
     }];
+    return promise;
 }
 
-+ (PMKPromise *)slowGetImageForURL:(NSString *)url {
++ (SGCachePromise *)slowGetImageForURL:(NSString *)url {
     return [self slowGetImageForURL:url requestHeaders:nil];
 }
 
-+ (PMKPromise *)slowGetImageForURL:(NSString *)url requestHeaders:(NSDictionary *)headers {
++ (SGCachePromise *)slowGetImageForURL:(NSString *)url requestHeaders:(NSDictionary *)headers {
     id cacheKey = [self.cache cacheKeyFor:url requestHeaders:headers];
     return [self slowGetImageForURL:url requestHeaders:headers cacheKey:cacheKey];
 }
 
-+ (PMKPromise *)slowGetImageForURL:(NSString *)url requestHeaders:(NSDictionary *)headers
++ (SGCachePromise *)slowGetImageForURL:(NSString *)url requestHeaders:(NSDictionary *)headers
       cacheKey:(NSString *)cacheKey {
-    return [PMKPromise new:^(PMKPromiseFulfiller fulfill, PMKPromiseRejecter reject) {
+    __block SGCachePromise *promise = [SGCachePromise new:^(PMKPromiseFulfiller fulfill, PMKPromiseRejecter reject) {
+        dispatch_async(dispatch_get_main_queue(), ^{
         [self slowGetImageForURL:url requestHeaders:headers cacheKey:cacheKey
               thenDo:^(UIImage *image) {
                   fulfill(image);
-              }];
+              } onFail:^(NSError *error, BOOL wasFatal) {
+                  if (wasFatal) {
+                      reject(error);
+                  }
+              } promise:promise];
+        });
     }];
+    return promise;
 }
 
 + (void)getImageForURL:(NSString *)url requestHeaders:(NSDictionary *)headers
-      cacheKey:(NSString *)cacheKey  remoteFetchOnly:(BOOL)remoteOnly
-                thenDo:(SGCacheFetchCompletion)completion {
+      cacheKey:(NSString *)cacheKey remoteFetchOnly:(BOOL)remoteOnly
+                thenDo:(SGCacheFetchCompletion)completion
+                onFail:(SGCacheFetchFail)failBlock
+               promise:(SGCachePromise *)promise {
     if (![url isKindOfClass:NSString.class] || !url.length) {
         return;
     }
@@ -174,17 +198,25 @@
         if (slowTask.isExecuting) { // reuse an executing slow task
             [slowTask addCompletion:completion];
             [slowTask addCompletions:fastTask.completions];
+            [slowTask addFailBlock:failBlock];
+            [slowTask addFailBlocks:fastTask.onFailBlocks];
             slowTask.forceDecompress = YES;
+            slowTask.promise = promise;
             [fastTask cancel];
         } else if (fastTask) { // reuse a fast task
             [fastTask addCompletion:completion];
             [fastTask addCompletions:slowTask.completions];
+            [fastTask addFailBlock:failBlock];
+            [fastTask addFailBlocks:slowTask.onFailBlocks];
+            fastTask.promise = promise;
             [slowTask cancel];
         } else { // add a fresh task to fast queue
             SGImageCacheTask *task = (id)[self taskForURL:url requestHeaders:headers
                   cacheKey:cacheKey attempt:1];
             task.remoteFetchOnly = remoteOnly;
             [task addCompletion:completion];
+            [task addFailBlock:failBlock];
+            task.promise = promise;
             task.forceDecompress = YES;
             [self.cache.fastQueue addOperation:task];
         }
@@ -192,7 +224,9 @@
 }
 
 + (void)slowGetImageForURL:(NSString *)url requestHeaders:(NSDictionary *)headers
-      cacheKey:(NSString *)cacheKey thenDo:(SGCacheFetchCompletion)completion {
+      cacheKey:(NSString *)cacheKey thenDo:(SGCacheFetchCompletion)completion
+                    onFail:(SGCacheFetchFail)failBlock
+                   promise:(SGCachePromise *)promise {
     if (![url isKindOfClass:NSString.class] || !url.length) {
         return;
     }
@@ -204,15 +238,23 @@
         if (fastTask && !slowTask.isExecuting) { // reuse existing fast task
             [fastTask addCompletion:completion];
             [fastTask addCompletions:slowTask.completions];
+            [fastTask addFailBlock:failBlock];
+            [fastTask addFailBlocks:slowTask.onFailBlocks];
+            fastTask.promise = promise;
             [slowTask cancel];
         } else if (slowTask) { // reuse existing slow task
             [slowTask addCompletion:completion];
             [slowTask addCompletions:fastTask.completions];
+            [slowTask addFailBlock:failBlock];
+            [slowTask addFailBlocks:fastTask.onFailBlocks];
+            slowTask.promise = promise;
             [fastTask cancel];
         } else { // add a fresh task to slow queue
             SGImageCacheTask *task = (id)[self taskForURL:url requestHeaders:headers
                   cacheKey:cacheKey attempt:1];
             [task addCompletion:completion];
+            [task addFailBlock:failBlock];
+            task.promise = promise;
             [self.cache.slowQueue addOperation:task];
         }
     });

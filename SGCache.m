@@ -6,6 +6,7 @@
 #import "SGCache.h"
 #import "SGCacheTask.h"
 #import "SGCachePrivate.h"
+#import "SGCachePromise.h"
 
 #define FOLDER_NAME @"SGCache"
 #define MAX_RETRIES 5
@@ -71,66 +72,90 @@ void backgroundDo(void(^block)()) {
     return [NSData dataWithContentsOfFile:[self.cache pathForCacheKey:cacheKey]];
 }
 
-+ (PMKPromise *)getFileForURL:(NSString *)url {
++ (SGCachePromise *)getFileForURL:(NSString *)url {
     return [self getFileForURL:url requestHeaders:nil];
 }
 
-+ (PMKPromise *)getFileForURL:(NSString *)url requestHeaders:(NSDictionary *)headers {
++ (SGCachePromise *)getFileForURL:(NSString *)url requestHeaders:(NSDictionary *)headers {
     id cacheKey = [self.cache cacheKeyFor:url requestHeaders:headers];
     return [self getFileForURL:url requestHeaders:headers cacheKey:cacheKey];
 }
 
-+ (PMKPromise *)getFileForURL:(NSString *)url requestHeaders:(NSDictionary *)headers
++ (SGCachePromise *)getFileForURL:(NSString *)url requestHeaders:(NSDictionary *)headers
       cacheKey:(NSString *)cacheKey {
-    return [PMKPromise new:^(PMKPromiseFulfiller fulfill, PMKPromiseRejecter reject) {
+
+    __block SGCachePromise *promise = [SGCachePromise new:^(PMKPromiseFulfiller fulfill, PMKPromiseRejecter reject) {
+        dispatch_async(dispatch_get_main_queue(), ^{
         [self getFileForURL:url requestHeaders:headers cacheKey:cacheKey remoteFetchOnly:NO
                      thenDo:^(NSData *data) {
-            fulfill(data);
-        }];
+                         fulfill(data);
+                     } onFail:^(NSError *error, BOOL wasFatal) {
+                         if (wasFatal) {
+                             reject(error);
+                         }
+                     } promise:promise];
+        });
     }];
+    return promise;
 }
 
-+ (PMKPromise *)getRemoteFileForURL:(NSString *)url {
++ (SGCachePromise *)getRemoteFileForURL:(NSString *)url {
     return [self getRemoteFileForURL:url requestHeaders:nil];
 }
 
-+ (PMKPromise *)getRemoteFileForURL:(NSString *)url requestHeaders:(NSDictionary *)headers {
++ (SGCachePromise *)getRemoteFileForURL:(NSString *)url requestHeaders:(NSDictionary *)headers {
     id cacheKey = [self.cache cacheKeyFor:url requestHeaders:headers];
     return [self getRemoteFileForURL:url requestHeaders:headers cacheKey:cacheKey];
 }
 
-+ (PMKPromise *)getRemoteFileForURL:(NSString *)url requestHeaders:(NSDictionary *)headers
++ (SGCachePromise *)getRemoteFileForURL:(NSString *)url requestHeaders:(NSDictionary *)headers
                            cacheKey:(NSString *)cacheKey {
-    return [PMKPromise new:^(PMKPromiseFulfiller fulfill, PMKPromiseRejecter reject) {
-        [self getFileForURL:url requestHeaders:headers cacheKey:cacheKey remoteFetchOnly:YES
-                     thenDo:^(NSData *data) {
-            fulfill(data);
-        }];
+    __block SGCachePromise *promise = [SGCachePromise new:^(PMKPromiseFulfiller fulfill, PMKPromiseRejecter reject) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self getFileForURL:url requestHeaders:headers cacheKey:cacheKey remoteFetchOnly:YES
+                         thenDo:^(NSData *data) {
+                             fulfill(data);
+                         } onFail:^(NSError *error, BOOL wasFatal) {
+                             if (wasFatal) {
+                                 reject(error);
+                             }
+                         } promise:promise];
+        });
     }];
+    return promise;
 }
 
-+ (PMKPromise *)slowGetFileForURL:(NSString *)url {
++ (SGCachePromise *)slowGetFileForURL:(NSString *)url {
     return [self slowGetFileForURL:url requestHeaders:nil];
 }
 
-+ (PMKPromise *)slowGetFileForURL:(NSString *)url requestHeaders:(NSDictionary *)headers {
++ (SGCachePromise *)slowGetFileForURL:(NSString *)url requestHeaders:(NSDictionary *)headers {
     id cacheKey = [self.cache cacheKeyFor:url requestHeaders:headers];
     return [self slowGetFileForURL:url requestHeaders:headers cacheKey:cacheKey];
 }
 
-+ (PMKPromise *)slowGetFileForURL:(NSString *)url requestHeaders:(NSDictionary *)headers
++ (SGCachePromise *)slowGetFileForURL:(NSString *)url requestHeaders:(NSDictionary *)headers
       cacheKey:(NSString *)cacheKey {
-    return [PMKPromise new:^(PMKPromiseFulfiller fulfill, PMKPromiseRejecter reject) {
-        [self slowGetFileForURL:url requestHeaders:headers cacheKey:cacheKey
-              thenDo:^(NSData *data) {
-                  fulfill(data);
-              }];
+    __block SGCachePromise *promise = [SGCachePromise new:^(PMKPromiseFulfiller fulfill, PMKPromiseRejecter reject) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self slowGetFileForURL:url requestHeaders:headers cacheKey:cacheKey
+                             thenDo:^(NSData *data) {
+                                 fulfill(data);
+                             } onFail:^(NSError *error, BOOL wasFatal) {
+                                 if (wasFatal) {
+                                     reject(error);
+                                 }
+                             } promise:promise];
+        });
     }];
+    return promise;
 }
 
 + (void)getFileForURL:(NSString *)url requestHeaders:(NSDictionary *)headers
              cacheKey:(NSString *)cacheKey remoteFetchOnly:(BOOL)remoteOnly
-               thenDo:(SGCacheFetchCompletion)completion {
+               thenDo:(SGCacheFetchCompletion)completion
+               onFail:(SGCacheFetchFail)failBlock
+              promise:(SGCachePromise *)promise {
     if (![url isKindOfClass:NSString.class] || !url.length) {
         return;
     }
@@ -142,23 +167,33 @@ void backgroundDo(void(^block)()) {
         if (slowTask.isExecuting) { // reuse an executing slow task
             [slowTask addCompletion:completion];
             [slowTask addCompletions:fastTask.completions];
+            [slowTask addFailBlock:failBlock];
+            [slowTask addFailBlocks:fastTask.onFailBlocks];
+            slowTask.promise = promise;
             [fastTask cancel];
         } else if (fastTask) { // reuse a fast task
             [fastTask addCompletion:completion];
             [fastTask addCompletions:slowTask.completions];
+            [fastTask addFailBlock:failBlock];
+            [fastTask addFailBlocks:slowTask.onFailBlocks];
+            fastTask.promise = promise;
             [slowTask cancel];
         } else { // add a fresh task to fast queue
             SGCacheTask *task = [self taskForURL:url requestHeaders:headers cacheKey:cacheKey
                   attempt:1];
             task.remoteFetchOnly = remoteOnly;
             [task addCompletion:completion];
+            [task addFailBlock:failBlock];
+            task.promise = promise;
             [self.cache.fastQueue addOperation:task];
         }
     });
 }
 
 + (void)slowGetFileForURL:(NSString *)url requestHeaders:(NSDictionary *)requestHeaders
-      cacheKey:(NSString *)cacheKey thenDo:(SGCacheFetchCompletion)completion {
+      cacheKey:(NSString *)cacheKey thenDo:(SGCacheFetchCompletion)completion
+                   onFail:(SGCacheFetchFail)failBlock
+                  promise:(SGCachePromise *)promise {
     if (![url isKindOfClass:NSString.class] || !url.length) {
         return;
     }
@@ -170,15 +205,23 @@ void backgroundDo(void(^block)()) {
         if (fastTask && !slowTask.isExecuting) { // reuse existing fast task
             [fastTask addCompletion:completion];
             [fastTask addCompletions:slowTask.completions];
+            [fastTask addFailBlock:failBlock];
+            [fastTask addFailBlocks:slowTask.onFailBlocks];
+            fastTask.promise = promise;
             [slowTask cancel];
         } else if (slowTask) { // reuse existing slow task
             [slowTask addCompletion:completion];
             [slowTask addCompletions:fastTask.completions];
+            [slowTask addFailBlock:failBlock];
+            [slowTask addFailBlocks:fastTask.onFailBlocks];
+            slowTask.promise = promise;
             [fastTask cancel];
         } else { // add a fresh task to slow queue
             SGCacheTask *task = [self taskForURL:url requestHeaders:requestHeaders cacheKey:cacheKey
                   attempt:1];
             [task addCompletion:completion];
+            [task addFailBlock:failBlock];
+            task.promise = promise;
             [self.cache.slowQueue addOperation:task];
         }
     });
@@ -287,6 +330,24 @@ void backgroundDo(void(^block)()) {
     return nil;
 }
 
++ (SGCacheTask *)taskForPromise:(SGCachePromise *)promise {
+    if (!promise) {
+        return nil;
+    }
+    for (SGCacheTask *task in self.cache.fastQueue.operations) {
+        if (promise == task.promise) {
+            return task;
+        }
+    }
+    for (SGCacheTask *task in self.cache.slowQueue.operations) {
+        if (promise == task.promise) {
+            return task;
+        }
+    }
+    return nil;
+
+}
+
 #pragma mark - Fail Handle
 
 + (void)taskFailed:(SGCacheTask *)task {
@@ -372,6 +433,18 @@ void backgroundDo(void(^block)()) {
         _slowQueue.maxConcurrentOperationCount = 1;
     }
     return _slowQueue;
+}
+
+#pragma mark - Retry handling
+
++ (void)addRetryForPromise:(SGCachePromise *)promise retryBlock:(SGCacheFetchOnRetry)retry {
+    SGCacheTask *task = [self taskForPromise:promise];
+    [task addRetryBlock:retry];
+}
+
++ (void)addFailForPromise:(SGCachePromise *)promise failBlock:(SGCacheFetchFail)failBlock {
+    SGCacheTask *task = [self taskForPromise:promise];
+    [task addFailBlock:failBlock];
 }
 
 #pragma mark - Logging

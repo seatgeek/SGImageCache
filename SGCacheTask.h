@@ -3,6 +3,7 @@
 //
 
 #import "SGCache.h"
+#import "SGCachePromise.h"
 
 @interface SGCacheTask : NSOperation
 
@@ -12,13 +13,23 @@
 @property (nonatomic, assign) BOOL succeeded;
 @property (nonatomic, assign) int attempt;
 @property (nonatomic, assign) BOOL remoteFetchOnly;
+@property (nonatomic, weak) SGCachePromise *promise;
 
 + (instancetype)taskForURL:(NSString *)url requestHeaders:(NSDictionary *)headers
       cacheKey:(NSString *)cacheKey attempt:(int)attempt;
 
-- (NSArray *)completions;
+- (NSMutableOrderedSet *)completions;
 - (void)addCompletion:(SGCacheFetchCompletion)completion;
-- (void)addCompletions:(NSArray *)completions;
+- (void)addCompletions:(NSMutableOrderedSet *)completions;
+
+- (NSMutableOrderedSet *)onFailBlocks;
+- (void)addFailBlock:(SGCacheFetchFail)fail;
+- (void)addFailBlocks:(NSMutableOrderedSet *)fails;
+
+- (NSMutableOrderedSet *)onRetryBlocks;
+- (void)addRetryBlock:(SGCacheFetchOnRetry)retry;
+- (void)addRetryBlocks:(NSMutableOrderedSet *)retries;
+
 - (BOOL)matchesCacheKey:(NSString *)cacheKey;
 
 @end
