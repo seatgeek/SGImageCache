@@ -11,6 +11,8 @@
 
 @interface SGCacheTask ()
 @property (nonatomic, strong) SGHTTPRequest *request;
+@property (nonatomic, strong) NSError *currentErrorStatus;
+@property (nonatomic, assign) BOOL currentErrorRetry;
 @end
 
 @implementation SGCacheTask {
@@ -100,6 +102,7 @@
 }
 
 - (void)fetchRemoteFile {
+    self.currentErrorStatus = nil;
     self.request = [SGHTTPRequest requestWithURL:[NSURL URLWithString:self.url]];
     self.request.responseFormat = SGHTTPDataTypeHTTP;
     if (self.requestHeaders) {
@@ -119,6 +122,7 @@
 
     __weakSelf me = self;
     self.request.onSuccess = ^(SGHTTPRequest *req) {
+        me.currentErrorStatus = nil;
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
             [me completedWithFile:req.responseData];
         });
@@ -128,11 +132,14 @@
         [me fetchRemoteFile];
     };
     self.request.onFailure = ^(SGHTTPRequest *req) {
+        me.currentErrorStatus = req.error;
         id info = req.error.userInfo;
         NSInteger code = [info[AFNetworkingOperationFailingURLResponseErrorKey] statusCode];
         if (code >= 400 && code < 408) { // give up on 4XX http errors
+            me.currentErrorRetry = NO;
             [me failedWithError:req.error allowRetry:NO];
         } else {
+            me.currentErrorRetry = YES;
             [me failedWithError:req.error allowRetry:YES];
         }
     };
@@ -216,6 +223,10 @@
     }
     if (promise.onFail) {
         [self addFailBlock:promise.onFail];
+    }
+    if (self.request && self.currentErrorStatus) {
+        [self failedWithError:self.currentErrorStatus allowRetry:self.currentErrorRetry];
+        [self fetchRemoteFile];
     }
 }
 
