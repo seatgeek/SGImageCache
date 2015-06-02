@@ -260,4 +260,13 @@ resolve when the existing task completes.
 
 + (NSCache *)globalMemCache;
 
+
+/** @name local setter */
+
+/**
+ * Add an image to the cache locally
+ */
++ (void)setImage:(UIImage *)image forURL:(NSString *)url;
+
+
 @end
