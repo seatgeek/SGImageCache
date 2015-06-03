@@ -1,10 +1,27 @@
+## 2.2.0
+
+- Added the ability to handle remote fetch failures and perform actions on fetch
+  retry attempts (eg. show fail screens, retry loading spinners).
+- Added an addImage:forURL method for adding images to the cache locally
+
+## 2.1.0
+
+- Added an addData: method for adding cache data locally
+
 ## 2.1.0
 
 - Added SGCache, a generic NSData cacher
 - Added the ability to use custom HTTP headers
 - Allow providing custom cache keys
 - Added the ability to force a remote fetch
-  
+
+## 2.1.0
+
+- Added SGCache, a generic NSData cacher
+- Added the ability to use custom HTTP headers
+- Allow providing custom cache keys
+- Added the ability to force a remote fetch
+
 ## 2.0.1
 
 - Allow SGImageCache to work with projects using Alamofire and use_frameworks!
