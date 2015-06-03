@@ -1,6 +1,6 @@
 ## SGImageCache
 
-A lightweight iOS image cache with built in queue management. 
+A lightweight iOS image and data cache with built in queue management.
 
 ### CocoaPods Setup
 
@@ -142,3 +142,25 @@ warning, and subsequently restore them from cache if the image view returns to s
 This allows off screen but still existing view controllers (eg a previous controller in a
 nav controller's stack) to free up memory that would otherwise be unnecessarily retained, 
 and reduce the chances of your app being terminated by iOS in limited memory situations.
+
+### Generic caching of NSData
+
+You can use SGImageCache for caching of generic data in the form of an NSData object (eg. PDFs, JSON payloads).  Just use the equialent `SGCache` class method instead of the `SGImageCache` one:
+
+```objc
+// Objective-C
+[SGCache getFileForURL:url].then(^(NSData *data) {
+  // do something with data
+});
+
+```
+
+```swift
+// Swift
+SGCache.getFileForURL(url) swiftThen({object in
+  if let data = object as? NSData {
+    // do something with data
+  }
+  return nil
+})
+```
