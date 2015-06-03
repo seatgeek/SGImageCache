@@ -112,7 +112,7 @@ promise.onFail = { (error: NSError?, wasFatal: Bool) -> () in
 
 ```
 
-This is useful for displaying states of network failure, loading spinners on reachability change, or any other functionality that might need to be notified that an image or cache object could not be fetched.
+This is useful for displaying states of network failure, loading spinners on reachability change, or any other functionality that might need to be notified that an image could not be fetched.
 
 ### fastQueue
 
@@ -145,7 +145,7 @@ and reduce the chances of your app being terminated by iOS in limited memory sit
 
 ### Generic caching of NSData
 
-You can use SGImageCache for caching of generic data in the form of an NSData object (eg. PDFs, JSON payloads).  Just use the equialent `SGCache` class method instead of the `SGImageCache` one:
+You can use SGImageCache for caching of generic data in the form of an NSData object (eg. PDFs, JSON payloads).  Just use the equivalent `SGCache` class method instead of the `SGImageCache` one:
 
 ```objc
 // Objective-C
