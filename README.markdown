@@ -157,7 +157,7 @@ You can use SGImageCache for caching of generic data in the form of an NSData ob
 
 ```swift
 // Swift
-SGCache.getFileForURL(url) swiftThen({object in
+SGCache.getFileForURL(url).swiftThen({object in
   if let data = object as? NSData {
     // do something with data
   }
