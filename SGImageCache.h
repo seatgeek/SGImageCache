@@ -247,6 +247,12 @@ resolve when the existing task completes.
 
 + (UIImage *)imageNamed:(NSString *)named;
 
+/**
+ * Adds an image to the cache manually.  Useful for using images generated on
+ * the device (eg. from the camera) which are then uploaded to the given url.
+ */
++ (void)addImage:(UIImage *)image forURL:(NSString *)url;
+
 #pragma - mark - Memory Cache
 
 /** @name Memory Cache */
@@ -259,14 +265,6 @@ resolve when the existing task completes.
 + (void)setMemoryCacheSize:(NSUInteger)megaBytes;
 
 + (NSCache *)globalMemCache;
-
-
-/** @name local setter */
-
-/**
- * Add an image to the cache locally
- */
-+ (void)setImage:(UIImage *)image forURL:(NSString *)url;
 
 
 @end

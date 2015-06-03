@@ -104,9 +104,8 @@
     return image;
 }
 
-+ (void)setImage:(UIImage *)image forURL:(NSString *)url {
++ (void)addImage:(UIImage *)image forURL:(NSString *)url {
     if ([self.globalMemCache objectForKey:url]) {
-        NSLog(@"XXX image already in global mem cache");
         return;
     }
     int height = image.size.height,
@@ -120,7 +119,6 @@
     [self.globalMemCache setObject:image forKey:cacheKey cost:imageCost];
     NSData *data = UIImagePNGRepresentation(image);
     [SGImageCache addData:data forCacheKey:cacheKey];
-    NSLog(@"added cacheKey XXX   %@", cacheKey);
 }
 
 + (SGCachePromise *)getImageForURL:(NSString *)url {
