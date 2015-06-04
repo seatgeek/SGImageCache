@@ -6,8 +6,8 @@
 //
 //
 
-#import "Promise.h"
-#import "MGEvents.h"
+#import <PromiseKit/Promise.h>
+#import <MGEvents/MGEvents.h>
 
 typedef void(^SGCacheFetchCompletion)(id obj);
 typedef void(^SGCacheFetchFail)(NSError *error, BOOL wasFatal);
