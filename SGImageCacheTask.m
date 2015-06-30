@@ -6,6 +6,7 @@
 #import "SGCacheTaskPrivate.h"
 #import "SGCachePrivate.h"
 #import "SGImageCache.h"
+#import "SGImageCachePrivate.h"
 
 @implementation SGImageCacheTask
 
@@ -13,6 +14,9 @@
     UIImage *image = [UIImage imageWithData:data];
 
     if (image) {
+        if ([SGImageCache imageFromMemCacheForCacheKey:self.cacheKey]) {
+            [SGImageCache setImageInMemCache:image forCacheKey:self.cacheKey];
+        }
         [SGImageCache addData:data forCacheKey:self.cacheKey];
     } else {
         [self finish];

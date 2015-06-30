@@ -7,6 +7,7 @@
 #import "SGImageCacheTask.h"
 #import "SGCachePrivate.h"
 #import "SGCachePromise.h"
+#import "SGImageCachePrivate.h"
 
 #define FOLDER_NAME @"SGImageCache"
 #define MAX_RETRIES 5
@@ -55,7 +56,7 @@
 }
 
 + (UIImage *)imageForCacheKey:(NSString *)cacheKey {
-    UIImage *image = [self.globalMemCache objectForKey:cacheKey];
+    UIImage *image = [self imageFromMemCacheForCacheKey:cacheKey];
     if (image) {
         return image;
     }
@@ -66,21 +67,12 @@
         return nil;
     }
 
-    // quickly guess rough byte size of the image
-    int height = image.size.height, width = image.size.width;
-    int bytesPerRow = 4 * width;
-    if (bytesPerRow % 16) {
-        bytesPerRow = ((bytesPerRow / 16) + 1) * 16;
-    }
-
-    NSUInteger imageCost = height * bytesPerRow;
-    [self.globalMemCache setObject:image forKey:cacheKey cost:imageCost];
-
+    [self setImageInMemCache:image forCacheKey:cacheKey];
     return image;
 }
 
 + (UIImage *)imageNamed:(NSString *)name {
-    UIImage *image = [self.globalMemCache objectForKey:name];
+    UIImage *image = [self imageFromMemCacheForCacheKey:name];
     if (image) {
         return image;
     }
@@ -90,24 +82,11 @@
         return nil;
     }
 
-    // quickly guess rough byte size of the image
-    int height = image.size.height,
-    width = image.size.width;
-    int bytesPerRow = 4 * width;
-    if (bytesPerRow % 16) {
-        bytesPerRow = ((bytesPerRow / 16) + 1) * 16;
-    }
-
-    NSUInteger imageCost = height * bytesPerRow;
-    [self.globalMemCache setObject:image forKey:name cost:imageCost];
-    
+    [self setImageInMemCache:image forCacheKey:name];
     return image;
 }
 
 + (void)addImage:(UIImage *)image forURL:(NSString *)url {
-    if ([self.globalMemCache objectForKey:url]) {
-        return;
-    }
     int height = image.size.height,
     width = image.size.width;
     int bytesPerRow = 4 * width;
@@ -279,6 +258,26 @@
 
 + (void)flushImagesOlderThan:(NSTimeInterval)age {
     [self flushFilesOlderThan:age];
+}
+
+#pragma mark - Private
+
++ (UIImage *)imageFromMemCacheForCacheKey:(NSString *)cacheKey {
+    return [self.globalMemCache objectForKey:cacheKey];
+}
+
++ (void)setImageInMemCache:(UIImage *)image forCacheKey:(NSString *)cacheKey {
+    if (!image) {
+        return;
+    }
+    // quickly guess rough byte size of the image
+    int height = image.size.height, width = image.size.width;
+    int bytesPerRow = 4 * width;
+    if (bytesPerRow % 16) {
+        bytesPerRow = ((bytesPerRow / 16) + 1) * 16;
+    }
+    NSUInteger imageCost = height * bytesPerRow;
+    [self.globalMemCache setObject:image forKey:cacheKey cost:imageCost];
 }
 
 #pragma mark - Task Factory

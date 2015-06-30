@@ -7,6 +7,7 @@
 #import "SGCacheTask.h"
 #import "SGCachePrivate.h"
 #import "SGCachePromise.h"
+#import "NSString+SGImageCacheHash.h"
 
 #define FOLDER_NAME @"SGCache"
 #define MAX_RETRIES 5
@@ -391,7 +392,9 @@ void backgroundDo(void(^block)()) {
     for (id key in dict) {
         [hash appendFormat:@"%@", @([key hash])];
         id value = dict[key];
-        if ([value conformsToProtocol:@protocol(NSObject)]) {
+        if ([value respondsToSelector:@selector(sgCacheHash)]) {
+            [hash appendFormat:@"%@", [value sgCacheHash]];
+        } else if ([value conformsToProtocol:@protocol(NSObject)]) {
             [hash appendFormat:@"%@", @([value hash])];
         }
     }
@@ -399,7 +402,7 @@ void backgroundDo(void(^block)()) {
 }
 
 - (NSString *)pathForCacheKey:(NSString *)cacheKey {
-    return [NSString stringWithFormat:@"%@/%@", self.cachePath, @(cacheKey.hash)];
+    return [NSString stringWithFormat:@"%@/%@", self.cachePath, cacheKey.sgCacheHash];
 }
 
 - (NSString *)pathForURL:(NSString *)url requestHeaders:(NSDictionary *)headers {
@@ -407,7 +410,7 @@ void backgroundDo(void(^block)()) {
 }
 
 - (NSString *)cacheKeyFor:(NSString *)url requestHeaders:(NSDictionary *)headers {
-    return [NSString stringWithFormat:@"%@%@", @(url.hash), [self hashForDictionary:headers]];
+    return [NSString stringWithFormat:@"%@%@", url.sgCacheHash, [self hashForDictionary:headers]];
 }
 
 - (NSOperationQueue *)fastQueue {
