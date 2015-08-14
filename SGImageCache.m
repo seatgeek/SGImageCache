@@ -100,6 +100,12 @@
     [SGImageCache addData:data forCacheKey:cacheKey];
 }
 
++ (void)removeImageForURL:(NSString *)url {
+    NSString *cacheKey = [self.cache cacheKeyFor:url requestHeaders:nil];
+    [self setImageInMemCache:nil forCacheKey:cacheKey];
+    [SGImageCache removeDataForCacheKey:cacheKey];
+}
+
 + (SGCachePromise *)getImageForURL:(NSString *)url {
     return [self getImageForURL:url requestHeaders:nil];
 }
@@ -268,6 +274,7 @@
 
 + (void)setImageInMemCache:(UIImage *)image forCacheKey:(NSString *)cacheKey {
     if (!image) {
+        [self.globalMemCache removeObjectForKey:cacheKey];
         return;
     }
     // quickly guess rough byte size of the image

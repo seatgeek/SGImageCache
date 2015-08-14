@@ -307,6 +307,7 @@ resolve when the existing task completes.
 + (SGImageCacheLogging)logging;
 
 + (void)addData:(NSData *)data forCacheKey:(NSString *)cacheKey;
++ (void)removeDataForCacheKey:(NSString *)cacheKey;
 
 @end
 

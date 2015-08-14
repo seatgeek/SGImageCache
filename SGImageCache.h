@@ -253,6 +253,12 @@ resolve when the existing task completes.
  */
 + (void)addImage:(UIImage *)image forURL:(NSString *)url;
 
+/**
+ * Removes an image from the cache manually.  Useful for forcing a fresh image
+ * to be downloaded from the given url.
+ */
++ (void)removeImageForURL:(NSString *)url;
+
 #pragma - mark - Memory Cache
 
 /** @name Memory Cache */

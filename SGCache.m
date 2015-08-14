@@ -296,6 +296,13 @@ void backgroundDo(void(^block)()) {
     [data writeToFile:[self.cache pathForCacheKey:cacheKey] atomically:YES];
 }
 
++ (void)removeDataForCacheKey:(NSString *)cacheKey {
+    NSString *path = [self.cache pathForCacheKey:cacheKey];
+    if (path.length) {
+        [NSFileManager.defaultManager removeItemAtPath:path error:nil];
+    }
+}
+
 #pragma mark - Task Factory
 
 + (SGCacheTask *)taskForURL:(NSString *)url requestHeaders:(NSDictionary *)requestHeaders
