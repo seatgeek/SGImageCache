@@ -1,3 +1,9 @@
+## 2.2.1
+
+- Added a way to remove images from the cache manually
+- Fixed caching bug to do with hash collisions
+- Use Framework style import statements for pod Framework compatibility
+
 ## 2.2.0
 
 - Added the ability to handle remote fetch failures and perform actions on fetch
