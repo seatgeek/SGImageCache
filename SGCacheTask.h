@@ -14,6 +14,7 @@
 @property (nonatomic, assign) int attempt;
 @property (nonatomic, assign) BOOL remoteFetchOnly;
 @property (nonatomic, weak) SGCachePromise *promise;
+@property (nonatomic, assign) Class cacheClass;
 
 + (instancetype)taskForURL:(NSString *)url requestHeaders:(NSDictionary *)headers
       cacheKey:(NSString *)cacheKey attempt:(int)attempt;

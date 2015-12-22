@@ -27,6 +27,7 @@
     _completions = NSMutableOrderedSet.new;
     _failBlocks = NSMutableOrderedSet.new;
     _retryBlocks = NSMutableOrderedSet.new;
+    _cacheClass = SGCache.class;
     return self;
 }
 
@@ -94,8 +95,8 @@
         [self finish];
         return;
     }
-    if (!self.remoteFetchOnly && [SGCache haveFileForURL:self.url]) {
-        [self completedWithFile:[SGCache fileForURL:self.url]];
+    if (!self.remoteFetchOnly && [self.cacheClass haveFileForURL:self.url]) {
+        [self completedWithFile:[self.cacheClass fileForURL:self.url]];
     } else {
         [self fetchRemoteFile];
     }
@@ -147,7 +148,7 @@
 }
 
 - (void)completedWithFile:(NSData *)data {
-    [SGCache addData:data forCacheKey:self.cacheKey];
+    [self.cacheClass addData:data forCacheKey:self.cacheKey];
 
     // call the completion blocks on the main thread
     dispatch_async(dispatch_get_main_queue(), ^{

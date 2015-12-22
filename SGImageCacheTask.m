@@ -10,6 +10,12 @@
 
 @implementation SGImageCacheTask
 
+- (id)init {
+    self = [super init];
+    self.cacheClass = SGImageCache.class;
+    return self;
+}
+
 - (void)completedWithFile:(NSData *)data {
     UIImage *image = [UIImage imageWithData:data];
 
