@@ -2,6 +2,8 @@
 //  Created by matt on 22/05/14.
 //
 
+#if !TARGET_OS_WATCH
+
 #import "UIImageView+SGImageCache.h"
 #import "SGImageCache.h"
 #import <MGEvents/MGEvents.h>
@@ -131,3 +133,5 @@
 }
 
 @end
+
+#endif

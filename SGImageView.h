@@ -6,6 +6,8 @@
 //
 //
 
+#if !TARGET_OS_WATCH
+
 #import "UIImageView+SGImageCache.h"
 
 /**
@@ -22,3 +24,5 @@
 @interface SGImageView : UIImageView
 
 @end
+
+#endif

@@ -4,8 +4,6 @@
 
 #import "SGCacheTask.h"
 #import "SGHTTPRequest.h"
-#import "AFURLConnectionOperation.h"
-#import "AFURLResponseSerialization.h"
 #import "SGCachePrivate.h"
 #import "SGCachePromise.h"
 
@@ -134,8 +132,7 @@
     };
     self.request.onFailure = ^(SGHTTPRequest *req) {
         me.currentErrorStatus = req.error;
-        id info = req.error.userInfo;
-        NSInteger code = [info[AFNetworkingOperationFailingURLResponseErrorKey] statusCode];
+        NSInteger code = req.statusCode;
         if (code >= 400 && code < 408) { // give up on 4XX http errors
             me.currentErrorRetry = NO;
             [me failedWithError:req.error allowRetry:NO];

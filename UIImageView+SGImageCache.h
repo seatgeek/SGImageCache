@@ -2,6 +2,8 @@
 //  Created by matt on 22/05/14.
 //
 
+#if !TARGET_OS_WATCH
+
 /**
 * A `UIImageView` category with convenience setters for loading images from
 * <SGImageCache>.
@@ -80,3 +82,5 @@
        crossFadeDuration:(NSTimeInterval)duration;
 
 @end
+
+#endif

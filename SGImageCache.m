@@ -310,9 +310,9 @@
     static NSCache *globalCache;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
+#if !TARGET_OS_WATCH
         globalCache = NSCache.new;
         globalCache.totalCostLimit = 100000000;  // 100 MB ish
-
         [NSNotificationCenter.defaultCenter
              addObserverForName:UIApplicationDidReceiveMemoryWarningNotification
              object:nil
@@ -326,6 +326,10 @@
                  });
                  [SGImageCache trigger:SGCacheFlushed];
              }];
+#else
+        globalCache = NSCache.new;
+        globalCache.totalCostLimit = 10000000;  // 10 MB ish
+#endif
     });
     return globalCache;
 }

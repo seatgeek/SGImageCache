@@ -6,6 +6,8 @@
 //
 //
 
+#if !TARGET_OS_WATCH
+
 #import "SGImageView.h"
 #import "SGImageCache.h"
 #import <MGEvents/MGEvents.h>
@@ -103,3 +105,5 @@
 }
 
 @end
+
+#endif
