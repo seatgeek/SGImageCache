@@ -1,3 +1,8 @@
+## 2.3.0
+
+- SGImageCache is now based on AFNetworking 3
+- Fixed bug where sometimes images were fetched remotely even if they were available from the cache
+
 ## 2.2.1
 
 - Added a way to remove images from the cache manually
