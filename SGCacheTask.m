@@ -104,6 +104,8 @@
     self.currentErrorStatus = nil;
     self.request = [SGHTTPRequest requestWithURL:[NSURL URLWithString:self.url]];
     self.request.responseFormat = SGHTTPDataTypeHTTP;
+    self.request.allowCacheToDisk = NO;
+
     if (self.requestHeaders) {
         self.request.requestHeaders = self.requestHeaders;
     }
