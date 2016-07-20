@@ -65,7 +65,7 @@
             [UIView transitionWithView:self.superview
                               duration:duration
                                options:UIViewAnimationOptionTransitionCrossDissolve |
-             UIViewAnimationOptionAllowAnimatedContent
+             UIViewAnimationOptionAllowAnimatedContent | UIViewAnimationOptionAllowUserInteraction
                             animations:^{
                                 self.image = image;
                                 [self trigger:SGImageViewImageChanged withContext:image];
@@ -93,7 +93,7 @@
                 [UIView transitionWithView:me.superview
                                   duration:duration
                                    options:UIViewAnimationOptionTransitionCrossDissolve |
-                                           UIViewAnimationOptionAllowAnimatedContent
+                                           UIViewAnimationOptionAllowAnimatedContent | UIViewAnimationOptionAllowUserInteraction
                                 animations:^{
                                     me.image = image;
                                     [me trigger:SGImageViewImageChanged withContext:image];
@@ -120,7 +120,7 @@
         [UIView transitionWithView:me.superview
                           duration:duration
                            options:UIViewAnimationOptionTransitionCrossDissolve |
-                                   UIViewAnimationOptionAllowAnimatedContent
+                                   UIViewAnimationOptionAllowAnimatedContent | UIViewAnimationOptionAllowUserInteraction
                         animations:^{
                             me.image = image;
                             [me trigger:SGImageViewImageChanged withContext:image];
