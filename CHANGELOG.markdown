@@ -1,3 +1,7 @@
+## 2.4.0
+
+- Enabled watchOS 2 target
+
 ## 2.3.0
 
 - SGImageCache is now based on AFNetworking 3
