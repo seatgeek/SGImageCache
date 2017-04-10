@@ -3,7 +3,10 @@
 //
 
 #import <UIKit/UIKit.h>
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdocumentation"
 #import <PromiseKit/PromiseKit.h>
+#pragma clang pop
 #import "SGCache.h"
 
 /**

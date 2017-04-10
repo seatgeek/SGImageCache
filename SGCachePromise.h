@@ -6,7 +6,11 @@
 //
 //
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdocumentation"
 #import <PromiseKit/Promise.h>
+#pragma clang pop
+
 #import <MGEvents/MGEvents.h>
 
 typedef void(^SGCacheFetchCompletion)(id obj);
