@@ -61,19 +61,8 @@
 
     if ([SGImageCache haveImageForURL:url]) {
         UIImage *image = [SGImageCache imageForURL:url];
-        if (duration > 0 && me.window) {
-            [UIView transitionWithView:self.superview
-                              duration:duration
-                               options:UIViewAnimationOptionTransitionCrossDissolve |
-             UIViewAnimationOptionAllowAnimatedContent | UIViewAnimationOptionAllowUserInteraction
-                            animations:^{
-                                self.image = image;
-                                [self trigger:SGImageViewImageChanged withContext:image];
-                            } completion:nil];
-        } else {
-            self.image = image;
-            [self trigger:SGImageViewImageChanged withContext:image];
-        }
+        self.image = image;
+        [self trigger:SGImageViewImageChanged withContext:image];        
     } else {
         if (self.image != placeholder) {
             self.image = placeholder;
