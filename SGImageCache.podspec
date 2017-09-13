@@ -11,8 +11,7 @@ Pod::Spec.new do |s|
   s.source       = { :git => "https://github.com/seatgeek/SGImageCache.git", :tag => "2.4.0" }
   s.source_files = "*.{h,m}"
   s.requires_arc = true
-  s.dependency "SGHTTPRequest/Core", '~> 1.8'
-  s.dependency "AFNetworking"
+  s.dependency "SGHTTPRequest/Core", '~> 1.8'  
   s.dependency "MGEvents", '~> 1.1'
   s.dependency 'PromiseKit/Promise', '~> 1.5'
 end
