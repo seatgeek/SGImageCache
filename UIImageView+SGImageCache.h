@@ -48,7 +48,7 @@
  */
 - (void)setImageForURL:(NSString*)url
            placeholder:(UIImage*)placeholder
-            stillValid:(BOOL(^)())stillValid;
+            stillValid:(BOOL(^)(void))stillValid;
 
 /**
  * Assigns a placeholder image to the image view's `image`, then fetches an
@@ -63,7 +63,7 @@
 - (void)setImageForURL:(NSString *)url
            placeholder:(UIImage *)placeholder
      crossFadeDuration:(NSTimeInterval)duration 
-            stillValid:(BOOL(^)())stillValid;
+            stillValid:(BOOL(^)(void))stillValid;
 
 /**
  * Fetches an image from <SGImageCache> and assigns it to the image view's

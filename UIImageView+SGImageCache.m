@@ -41,7 +41,7 @@
 
 - (void)setImageForURL:(NSString*)url
            placeholder:(UIImage*)placeholder
-            stillValid:(BOOL(^)())stillValid {
+            stillValid:(BOOL(^)(void))stillValid {
     [self setImageForURL:url placeholder:placeholder crossFadeDuration:0 stillValid:stillValid];
 }
 
@@ -54,7 +54,7 @@
 - (void)setImageForURL:(NSString *)url
            placeholder:(UIImage *)placeholder
      crossFadeDuration:(NSTimeInterval)duration 
-            stillValid:(BOOL(^)())stillValid {
+            stillValid:(BOOL(^)(void))stillValid {
     __weakSelf me = self;
 
     self.cachedImageURL = url;

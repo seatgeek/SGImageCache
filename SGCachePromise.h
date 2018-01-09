@@ -15,7 +15,7 @@
 
 typedef void(^SGCacheFetchCompletion)(id obj);
 typedef void(^SGCacheFetchFail)(NSError *error, BOOL wasFatal);
-typedef void(^SGCacheFetchOnRetry)();
+typedef void(^SGCacheFetchOnRetry)(void);
 
 @interface SGCachePromise : PMKPromise
 @property (nonatomic, copy) SGCacheFetchOnRetry onRetry;

@@ -9,7 +9,7 @@
 #ifndef Pods_SGCachePrivate_h
 #define Pods_SGCachePrivate_h
 
-void backgroundDo(void(^block)());
+void backgroundDo(void(^block)(void));
 
 @class SGCacheTask;
 
