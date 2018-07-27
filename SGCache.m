@@ -261,13 +261,13 @@ void backgroundDo(void(^block)(void)) {
 }
 
 + (void)flushFilesOlderThan:(NSTimeInterval)age {
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^{
+    // let the queues finish, then suspend them    
+    [self.cache.slowQueue waitUntilAllOperationsAreFinished];
+    self.cache.slowQueue.suspended = YES;
+    [self.cache.fastQueue waitUntilAllOperationsAreFinished];
+    self.cache.fastQueue.suspended = YES;
 
-        // let the queues finish, then suspend them
-        [self.cache.slowQueue waitUntilAllOperationsAreFinished];
-        self.cache.slowQueue.suspended = YES;
-        [self.cache.fastQueue waitUntilAllOperationsAreFinished];
-        self.cache.fastQueue.suspended = YES;
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^{
 
         NSArray *files = [NSFileManager.defaultManager contentsOfDirectoryAtPath:self.cache
               .cachePath error:nil];
@@ -287,8 +287,10 @@ void backgroundDo(void(^block)(void)) {
         }
 
         // let the queues run wild again
-        self.cache.fastQueue.suspended = NO;
-        self.cache.slowQueue.suspended = NO;
+        dispatch_async(dispatch_get_main_queue(), ^{
+            self.cache.fastQueue.suspended = NO;
+            self.cache.slowQueue.suspended = NO;
+        });
     });
 }
 
