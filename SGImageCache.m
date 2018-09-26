@@ -335,3 +335,97 @@
 }
 
 @end
+
+#pragma mark - Simple Interface for Swift
+
+@implementation SGImageCache (SGImageCache_Simple)
+
++ (void)getImageForURL:(NSString *)url onReceive:(void (^)(UIImage *))onReceive {
+    [self getImageForURL:url].then(^(UIImage *image) {
+        if (onReceive) {
+            onReceive(image);
+        }
+    });
+}
+
++ (void)getImageForURL:(NSString *)url requestHeaders:(NSDictionary *)headers onReceive:(void (^)(UIImage *))onReceive {
+    [self getImageForURL:url requestHeaders:headers].then(^(UIImage *image) {
+        if (onReceive) {
+            onReceive(image);
+        }
+    });
+}
+
++ (void)getImageForURL:(NSString *)url
+        requestHeaders:(NSDictionary *)headers
+              cacheKey:(NSString *)cacheKey
+             onReceive:(void (^)(UIImage *))onReceive {
+    [self getImageForURL:url requestHeaders:headers cacheKey:cacheKey].then(^(UIImage *image) {
+        if (onReceive) {
+            onReceive(image);
+        }
+    });
+}
+
++ (void)getRemoteImageForURL:(NSString *)url onReceive:(void (^)(UIImage *))onReceive {
+    [self getRemoteImageForURL:url].then(^(UIImage *image) {
+        if (onReceive) {
+            onReceive(image);
+        }
+    });
+}
+
++ (void)getRemoteImageForURL:(NSString *)url
+              requestHeaders:(NSDictionary *)headers
+                   onReceive:(void (^)(UIImage *))onReceive {
+    [self getRemoteImageForURL:url requestHeaders:headers].then(^(UIImage *image) {
+        if (onReceive) {
+            onReceive(image);
+        }
+    });
+}
+
++ (void)getRemoteImageForURL:(NSString *)url
+              requestHeaders:(NSDictionary *)headers
+                    cacheKey:(NSString *)cacheKey
+                   onReceive:(void (^)(UIImage *))onReceive {
+    [self getRemoteImageForURL:url
+                requestHeaders:headers
+                      cacheKey:cacheKey].then(^(UIImage *image) {
+        if (onReceive) {
+            onReceive(image);
+        }
+    });
+}
+
++ (void)slowGetImageForURL:(NSString *)url
+                 onReceive:(void (^)(UIImage *))onReceive {
+    [self slowGetImageForURL:url].then(^(UIImage *image) {
+        if (onReceive) {
+            onReceive(image);
+        }
+    });
+}
+
++ (void)slowGetImageForURL:(NSString *)url
+            requestHeaders:(NSDictionary *)headers
+                 onReceive:(void (^)(UIImage *))onReceive {
+    [self slowGetImageForURL:url requestHeaders:headers].then(^(UIImage *image) {
+        if (onReceive) {
+            onReceive(image);
+        }
+    });
+}
+
++ (void)slowGetImageForURL:(NSString *)url
+            requestHeaders:(NSDictionary *)headers
+                  cacheKey:(NSString *)cacheKey
+                 onReceive:(void (^)(UIImage *))onReceive {
+    [self slowGetImageForURL:url requestHeaders:headers cacheKey:cacheKey].then(^(UIImage *image) {
+        if (onReceive) {
+            onReceive(image);
+        }
+    });
+}
+
+@end
