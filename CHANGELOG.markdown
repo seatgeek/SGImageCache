@@ -1,3 +1,16 @@
+## 3.0.0
+- Added a simpler interface for use with swift
+
+## 2.5.0
+
+- Updated minimum deployment target to iOS 9
+- Removed watchOS 2 target
+- Fixed a thread safety issue when flushing caches on app launch
+- Fixed "this block declaration is not a prototype" warnings
+- Removed the explicit dependency of AFNetworking since we get it from SGHTTPRequest
+- Don’t crossfade images using the category method if we already have the image cached locally and can immediately set it
+- Suppressed documentation warnings coming from promiseKit
+
 ## 2.4.0
 
 - Enabled watchOS 2 target
