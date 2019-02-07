@@ -8,6 +8,37 @@ A lightweight iOS image and data cache with built in queue management.
 pod 'SGImageCache'
 ```
 
+### Typical Usage
+
+1. Attempt to load the image immediately from the cache, if it exists
+2. If the image is not available in the cache, fetch the image asynchronously.
+3. (optional) It is recommended to also xfade in your image using a UIView transition animation for a pleasing effect.
+
+```swift
+// Swift
+if let image = SGImageCache.image(forURL: url) {
+    imageView.image = image   // image loaded immediately from cache
+} else {
+    SGImageCache.getImage(url: url) { [weak self] image in
+        self?.imageView.image = image   // image loaded async
+    }
+}
+```
+
+```objc
+// Objective-C
+if ([SGImageCache haveImageForURL:url]) {
+    self.imageView.image = [SGImageCache imageForURL:url];  // image loaded immediately from cache
+} else {
+    __weak UIViewController *me = self;
+    [SGImageCache getImageForURL:url].then(^(UIImage *image) {
+        me.imageView.image = image;  // image loaded async        
+    });
+}
+```
+
+### Advanced Usage
+
 ### Get an image urgently
 
 ```objc
@@ -21,18 +52,10 @@ pod 'SGImageCache'
 
 ```swift
 // Swift
-SGImageCache.getImageForURL(url) { image in
-    if image {
-        self.imageView.image = image
-    }
+SGImageCache.getImage(url: url) { [weak self] image in
+    guard let self = self else { return }
+    self.imageView.image = image    
 }
-SGImageCache.getImageForURL(url).swiftThen({object in
-    if let image = object as? UIImage {
-        self.imageView.image = image
-    }
-    return nil
-})
-
 ```
 
 This will add the fetch request to `fastQueue` (a parellel queue). All image fetching (either
@@ -47,7 +70,7 @@ from memory, disk, or remote) is performed off the main thread.
 
 ```swift
 // Swift
-SGImageCache.slowGetImageForURL(url)
+SGImageCache.slowGetImage(url: url)
 ```
 
 This will add the fetch request to `slowQueue` (a serial queue). All image fetching (either
