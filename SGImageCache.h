@@ -45,7 +45,8 @@ Returns a PromiseKit promise that resolves with a UIImage.
 - If the URL is already in <slowQueue> it will be moved to <fastQueue> and
   the promise will resolve when the existing task completes.
 */
-+ (nonnull SGCachePromise *)getImageForURL:(nonnull NSString *)url;
++ (nonnull SGCachePromise *)getImageForURL:(nonnull NSString *)url
+NS_SWIFT_UNAVAILABLE("Use getImage(url:onReceive:) instead");
 
 /**
 Fetch an image from cache if available, or remote it not, sending HTTP headers
@@ -61,7 +62,8 @@ existing task completes.
 - If the URL is already in <slowQueue> it will be moved to <fastQueue> and
 the promise will resolve when the existing task completes.
  */
-+ (nonnull SGCachePromise *)getImageForURL:(nonnull NSString *)url requestHeaders:(nullable NSDictionary *)headers;
++ (nonnull SGCachePromise *)getImageForURL:(nonnull NSString *)url requestHeaders:(nullable NSDictionary *)headers
+NS_SWIFT_UNAVAILABLE("Use getImage(url:requestHeaders:onReceive:) instead");
 
 /**
 Fetch an image from cache if available, or remote it not, sending HTTP headers
@@ -81,7 +83,8 @@ the promise will resolve when the existing task completes.
 */
 + (nonnull SGCachePromise *)getImageForURL:(nonnull NSString *)url
                             requestHeaders:(nonnull NSDictionary *)headers
-                                  cacheKey:(nonnull NSString *)cacheKey;
+                                  cacheKey:(nonnull NSString *)cacheKey
+NS_SWIFT_UNAVAILABLE("Use getImage(url:requestHeaders:cacheKey:onReceive:) instead");
 
 /**
  Fetch an image from remote. Returns a PromiseKit promise that resolves with
@@ -101,8 +104,8 @@ the promise will resolve when the existing task completes.
  - If the URL is already in <slowQueue> it will be moved to <fastQueue> and
  the promise will resolve when the existing task completes.
  */
-+ (nonnull SGCachePromise *)getRemoteImageForURL:(nonnull NSString *)url;
-
++ (nonnull SGCachePromise *)getRemoteImageForURL:(nonnull NSString *)url
+NS_SWIFT_UNAVAILABLE("Use getRemoteImage(url:onReceive:) instead");
 
 /**
  Fetch an image from remote, sending HTTP headers with the request.
@@ -119,8 +122,8 @@ the promise will resolve when the existing task completes.
  the promise will resolve when the existing task completes.
  */
 + (nonnull SGCachePromise *)getRemoteImageForURL:(nonnull NSString *)url
-                                  requestHeaders:(nullable NSDictionary *)headers;
-
+                                  requestHeaders:(nullable NSDictionary *)headers
+NS_SWIFT_UNAVAILABLE("Use getRemoteImage(url:requestHeaders:onReceive:) instead");
 
 /**
  Fetch an image from remote, sending HTTP headers with the request and providing 
@@ -139,7 +142,8 @@ the promise will resolve when the existing task completes.
  */
 + (nonnull SGCachePromise *)getRemoteImageForURL:(nonnull NSString *)url
                                   requestHeaders:(nullable NSDictionary *)headers
-                                        cacheKey:(nonnull NSString *)cacheKey;
+                                        cacheKey:(nonnull NSString *)cacheKey
+NS_SWIFT_UNAVAILABLE("Use getRemoteImage(url:requestHeaders:cacheKey:onReceive:) instead");
 
 /**
 Fetch an image from cache if available, or remote it not.
@@ -157,7 +161,8 @@ Returns a PromiseKit promise that resolves with a UIImage.
 - If the URL is already in either <slowQueue> or <fastQueue> the promise will
   resolve when the existing task completes.
 */
-+ (nonnull SGCachePromise *)slowGetImageForURL:(nonnull NSString *)url;
++ (nonnull SGCachePromise *)slowGetImageForURL:(nonnull NSString *)url
+NS_SWIFT_UNAVAILABLE("Use slowGetImage(url:onReceive:) instead");
 
 /**
 Fetch an image from cache if available, or remote it not, sending HTTP headers
@@ -172,7 +177,8 @@ with the request. Returns a PromiseKit promise that resolves with a UIImage.
 resolve when the existing task completes.
 */
 + (nonnull SGCachePromise *)slowGetImageForURL:(nonnull NSString *)url
-                                requestHeaders:(nullable NSDictionary *)headers;
+                                requestHeaders:(nullable NSDictionary *)headers
+NS_SWIFT_UNAVAILABLE("Use slowGetImage(url:requestHeaders:onReceive:) instead");
 
 /**
 Fetch an image from cache if available, or remote it not, sending HTTP headers
@@ -190,7 +196,8 @@ resolve when the existing task completes.
 */
 + (nonnull SGCachePromise *)slowGetImageForURL:(nonnull NSString *)url
                                 requestHeaders:(nullable NSDictionary *)headers
-                                      cacheKey:(nonnull NSString *)cacheKey;
+                                      cacheKey:(nonnull NSString *)cacheKey
+NS_SWIFT_UNAVAILABLE("Use slowGetImage(url:requestHeaders:cacheKey:onReceive:) instead");
 
 #pragma mark - House Keeping
 
