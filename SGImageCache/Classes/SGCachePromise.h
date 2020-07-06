@@ -11,8 +11,6 @@
 #import <PromiseKit/Promise.h>
 #pragma clang pop
 
-#import <MGEvents/MGEvents.h>
-
 typedef void(^SGCacheFetchCompletion)(id obj);
 typedef void(^SGCacheFetchFail)(NSError *error, BOOL wasFatal);
 typedef void(^SGCacheFetchOnRetry)(void);

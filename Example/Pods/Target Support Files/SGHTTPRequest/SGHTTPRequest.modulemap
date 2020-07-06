@@ -1,0 +1,6 @@
+framework module SGHTTPRequest {
+  umbrella header "SGHTTPRequest-umbrella.h"
+
+  export *
+  module * { export * }
+}

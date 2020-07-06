@@ -1,0 +1,6 @@
+framework module MGEvents {
+  umbrella header "MGEvents-umbrella.h"
+
+  export *
+  module * { export * }
+}

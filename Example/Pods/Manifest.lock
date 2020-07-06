@@ -1,0 +1,47 @@
+PODS:
+  - AFNetworking/NSURLSession (3.2.1):
+    - AFNetworking/Reachability
+    - AFNetworking/Security
+    - AFNetworking/Serialization
+  - AFNetworking/Reachability (3.2.1)
+  - AFNetworking/Security (3.2.1)
+  - AFNetworking/Serialization (3.2.1)
+  - MGEvents (1.2.1)
+  - PromiseKit/Promise (1.7.7)
+  - SGHTTPRequest/Core (1.9.0):
+    - AFNetworking/NSURLSession (~> 3.0)
+    - AFNetworking/Reachability (~> 3.0)
+    - MGEvents (~> 1.1)
+  - SGImageCache (3.0.1):
+    - PromiseKit/Promise (~> 1.5)
+    - SGHTTPRequest/Core (~> 1.9)
+    - SGObjectEvents/Core
+  - SGObjectEvents/Core (0.1)
+
+DEPENDENCIES:
+  - SGImageCache (from `../`)
+
+SPEC REPOS:
+  "git@gitlab.service.seatgeek.mgmt:dev/podspec.git":
+    - SGObjectEvents
+  https://github.com/cocoapods/specs.git:
+    - AFNetworking
+    - MGEvents
+    - PromiseKit
+    - SGHTTPRequest
+
+EXTERNAL SOURCES:
+  SGImageCache:
+    :path: "../"
+
+SPEC CHECKSUMS:
+  AFNetworking: b6f891fdfaed196b46c7a83cf209e09697b94057
+  MGEvents: 989c1396082a25e760f03056bdc0af1b6c439c78
+  PromiseKit: 9007df2f9e2ef725467084ab3880cf932ab935a4
+  SGHTTPRequest: 93646208528eafd758052a92ee4dcf04e0d263c5
+  SGImageCache: 612d295ce1461223461385d0209f447f55cbd35c
+  SGObjectEvents: b69ae11481f58682366b0c4f73aefe84f9b77e8a
+
+PODFILE CHECKSUM: e8828afa98330ba9644b62971bb2d48416abba02
+
+COCOAPODS: 1.7.5

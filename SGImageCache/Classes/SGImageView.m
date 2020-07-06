@@ -10,7 +10,7 @@
 
 #import "SGImageView.h"
 #import "SGImageCache.h"
-#import <MGEvents/MGEvents.h>
+@import SGObjectEvents;
 
 @interface SGImageView ()
 @property (nonatomic,assign) BOOL imageReleasingEnabled;
@@ -99,7 +99,7 @@
     }
     self.registeredForNotifications = YES;
     __weakSelf me = self;
-    [self when:SGImageCache.class does:SGCacheFlushed do:^{
+    [self whenType:SGImageCache.class does:SGCacheFlushed do:^(id context){
         [me releaseImageIfAble];
     }];
 }

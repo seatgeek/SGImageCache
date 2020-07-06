@@ -2,12 +2,12 @@
 //  Created by matt on 18/03/13.
 //
 
-#import <MGEvents/MGEvents.h>
 #import "SGImageCache.h"
 #import "SGImageCacheTask.h"
 #import "SGCachePrivate.h"
 #import "SGCachePromise.h"
 #import "SGImageCachePrivate.h"
+@import SGObjectEvents;
 
 #define FOLDER_NAME @"SGImageCache"
 #define MAX_RETRIES 5
@@ -324,7 +324,7 @@
                  dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(10 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
                      globalCache.totalCostLimit = costLimit;
                  });
-                 [SGImageCache trigger:SGCacheFlushed];
+                 [SGImageCache triggerEvent:SGCacheFlushed];
              }];
 #else
         globalCache = NSCache.new;

@@ -2,12 +2,12 @@
 //  Created by matt on 7/05/15.
 //
 
-#import <MGEvents/MGEvents.h>
 #import "SGCache.h"
 #import "SGCacheTask.h"
 #import "SGCachePrivate.h"
 #import "SGCachePromise.h"
 #import "NSString+SGImageCacheHash.h"
+@import SGObjectEvents;
 
 #define FOLDER_NAME @"SGCache"
 #define MAX_RETRIES 5
@@ -432,7 +432,7 @@ void backgroundDo(void(^block)(void)) {
     // suspend slowQueue while fastQueue is active
     __weakSelf me = self;
     __weak NSOperationQueue *wQueue = _fastQueue;
-    [_fastQueue onChangeOf:@"operationCount" do:^{
+    [_fastQueue onChangeOfKeyPath:@"operationCount" do:^{
         me.slowQueue.suspended = !!wQueue.operationCount;
     }];
 

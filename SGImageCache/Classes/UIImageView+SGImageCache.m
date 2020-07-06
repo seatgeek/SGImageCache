@@ -6,8 +6,8 @@
 
 #import "UIImageView+SGImageCache.h"
 #import "SGImageCache.h"
-#import <MGEvents/MGEvents.h>
 #import <objc/runtime.h>
+@import SGObjectEvents;
 
 @interface UIImageView (SGImageCache_Private)
 @property (nonatomic,strong) NSString *cachedImageURL;
@@ -62,11 +62,11 @@
     if ([SGImageCache haveImageForURL:url]) {
         UIImage *image = [SGImageCache imageForURL:url];
         self.image = image;
-        [self trigger:SGImageViewImageChanged withContext:image];        
+        [self triggerEvent:SGImageViewImageChanged withContext:image];
     } else {
         if (self.image != placeholder) {
             self.image = placeholder;
-            [me trigger:SGImageViewImageChanged withContext:placeholder];
+            [me triggerEvent:SGImageViewImageChanged withContext:placeholder];
         }
         [SGImageCache getImageForURL:url].then(^(UIImage *image) {
             if (!image) {
@@ -85,11 +85,11 @@
                                            UIViewAnimationOptionAllowAnimatedContent | UIViewAnimationOptionAllowUserInteraction
                                 animations:^{
                                     me.image = image;
-                                    [me trigger:SGImageViewImageChanged withContext:image];
+                                    [me triggerEvent:SGImageViewImageChanged withContext:image];
                                 } completion:nil];
             } else {
                 me.image = image;
-                [me trigger:SGImageViewImageChanged withContext:image];
+                [me triggerEvent:SGImageViewImageChanged withContext:image];
             }
         });
     }
@@ -112,12 +112,12 @@
                                    UIViewAnimationOptionAllowAnimatedContent | UIViewAnimationOptionAllowUserInteraction
                         animations:^{
                             me.image = image;
-                            [me trigger:SGImageViewImageChanged withContext:image];
+                            [me triggerEvent:SGImageViewImageChanged withContext:image];
                         } completion:nil];
     } else {
         UIImage *image = [SGImageCache imageNamed:name];
         self.image = image;
-        [self trigger:SGImageViewImageChanged withContext:image];
+        [self triggerEvent:SGImageViewImageChanged withContext:image];
     }
 }
 

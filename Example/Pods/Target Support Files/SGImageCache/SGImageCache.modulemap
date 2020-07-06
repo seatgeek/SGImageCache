@@ -1,0 +1,6 @@
+framework module SGImageCache {
+  umbrella header "SGImageCache-umbrella.h"
+
+  export *
+  module * { export * }
+}

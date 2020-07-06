@@ -1,0 +1,6 @@
+source 'https://github.com/CocoaPods/Specs.git'
+source 'git@gitlab.service.seatgeek.mgmt:dev/podspec.git'
+use_frameworks!
+target 'SGImageCache_Tests' do
+  pod 'SGImageCache', :path => '../'
+end
